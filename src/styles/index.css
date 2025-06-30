@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom styles for Chrome extension */
+body {
+  width: 400px;
+  min-height: 300px;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Extension-specific styles */
+.extension-popup {
+  @apply bg-white text-gray-900;
+}
+
+.extension-button {
+  @apply px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors duration-200;
+}
+
+.extension-card {
+  @apply bg-white rounded-lg shadow-md p-4 border border-gray-200;
+} 

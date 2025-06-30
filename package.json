@@ -1,0 +1,37 @@
+{
+  "name": "chrome-extension-vite",
+  "version": "1.0.0",
+  "description": "Chrome extension built with Vite, Tailwind CSS, and TypeScript",
+  "type": "module",
+  "packageManager": "pnpm@8.15.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && node build-extension.js",
+    "build:vite": "tsc && vite build",
+    "preview": "vite preview",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist node_modules",
+    "install-deps": "pnpm install"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.17.9",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-query": "3.39.3",
+    "webextension-polyfill": "^0.10.0"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.254",
+    "@types/node": "24.0.7",
+    "@types/react": "^18.2.43",
+    "@types/react-dom": "^18.2.17",
+    "@types/webextension-polyfill": "^0.10.7",
+    "@vitejs/plugin-react": "^4.2.1",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.32",
+    "tailwindcss": "^3.3.6",
+    "terser": "^5.28.1",
+    "typescript": "^5.2.2",
+    "vite": "^5.0.8"
+  }
+}

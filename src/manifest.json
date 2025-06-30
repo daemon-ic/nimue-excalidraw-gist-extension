@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "Chrome Extension with Vite",
+  "version": "1.0.0",
+  "description": "A modern Chrome extension built with Vite, Tailwind CSS, and TypeScript",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "scripting"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Chrome Extension"
+  },
+  "options_page": "options.html",
+  "background": {
+    "service_worker": "js/background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["js/content.js"],
+      "run_at": "document_end"
+    }
+  ]
+} 
