@@ -1,7 +1,11 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useCount, useUpdateCount, useCurrentTab } from '../hooks/useStorage'
+import Header from '../components/Header'
+import { ConnectionStatus } from '../types/common'
+import ConnectModal from '@/components/ConnectModal'
 
 export const Popup: React.FC = () => {
+  const [status, setStatus] = useState<ConnectionStatus>("DISCONNECTED")
   const { data: count = 0, isLoading: countLoading, error: countError } = useCount()
   const { data: currentTab, isLoading: tabLoading, error: tabError } = useCurrentTab()
   const updateCountMutation = useUpdateCount()
@@ -15,6 +19,7 @@ export const Popup: React.FC = () => {
   }
 
   const isLoading = countLoading || tabLoading
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   if (isLoading) {
     return (
@@ -43,7 +48,11 @@ export const Popup: React.FC = () => {
   }
 
   return (
-    <div className="extension-popup p-4">
+
+    <div className="extension-popup">
+      {isModalOpen && <ConnectModal onClose={() => setIsModalOpen(false)} />}
+      <Header status={status} onConnect={() => setIsModalOpen(true)} />
+    <div className=" p-4">
       <div className="space-y-4">
         {/* Header */}
         <div className="text-center">
@@ -51,7 +60,7 @@ export const Popup: React.FC = () => {
             Chrome Extension
           </h1>
           <p className="text-sm text-gray-600">
-            Built with Vite + Tailwind + React Query
+            Built with Vite + Tailwind + React Queyyyy
           </p>
         </div>
 
@@ -95,6 +104,7 @@ export const Popup: React.FC = () => {
           <p>Click the extension icon to open this popup</p>
         </div>
       </div>
+    </div>
     </div>
   )
 } 

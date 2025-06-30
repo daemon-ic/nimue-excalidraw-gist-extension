@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { Options } from './components/Options'
+import { Options } from './pages/Options'
 import './styles/index.css'
 
 // Create a query client for the options page

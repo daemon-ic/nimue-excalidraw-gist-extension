@@ -6,6 +6,7 @@
   "packageManager": "pnpm@8.15.0",
   "scripts": {
     "dev": "vite",
+    "dev:extension": "node watch-extension.js --watch",
     "build": "tsc && node build-extension.js",
     "build:vite": "tsc && vite build",
     "preview": "vite preview",
@@ -17,7 +18,6 @@
     "@tanstack/react-query": "^5.17.9",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-query": "3.39.3",
     "webextension-polyfill": "^0.10.0"
   },
   "devDependencies": {

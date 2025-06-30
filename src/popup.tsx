@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { Popup } from './components/Popup'
+import { Popup } from './pages/Popup'
 import './styles/index.css'
 
 // Create a query client for the popup
