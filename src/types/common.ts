@@ -1,1 +1,1 @@
-export type ConnectionStatus = "CONNECTED" | "DISCONNECTED" | "CONNECTING"
+export type ConnectionStatus = "connected" | "disconnected" | "loading"

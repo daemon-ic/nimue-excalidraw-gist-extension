@@ -5,7 +5,7 @@
 /* Custom styles for Chrome extension */
 body {
   width: 400px;
-  min-height: 300px;
+  min-height: 400px;
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
@@ -19,6 +19,8 @@ body {
   --excali-purple: #6965DB;
   --excali-gray: #f1f0ff;
   --excali-black: #1b1b1f;
+  --excali-light-purple: #E0DFFF;
+  --excali-dark-purple: #040864;
   --nimue-dark-gray: #6e6e6e;
 }
 
@@ -33,5 +35,4 @@ body {
 }
 
 .extension-card {
-  @apply bg-white rounded-lg shadow-md p-4 border border-gray-200;
 } 

@@ -1,24 +1,17 @@
 import React, { useState } from 'react'
-import { useCount, useUpdateCount, useCurrentTab } from '../hooks/useStorage'
+import { useCurrentTab } from '../hooks/useStorage'
 import Header from '../components/Header'
-import { ConnectionStatus } from '../types/common'
 import ConnectModal from '@/components/ConnectModal'
+import { useAuthStatus } from '@/hooks/useGitHub'
+import Gallery from '@/components/Gallery'
+import Sidebar from '@/components/Sidebar'
 
 export const Popup: React.FC = () => {
-  const [status, setStatus] = useState<ConnectionStatus>("DISCONNECTED")
-  const { data: count = 0, isLoading: countLoading, error: countError } = useCount()
   const { data: currentTab, isLoading: tabLoading, error: tabError } = useCurrentTab()
-  const updateCountMutation = useUpdateCount()
+  const { status, gists, gistsLoading } = useAuthStatus()
+  console.log(gists)
 
-  const handleIncrement = () => {
-    updateCountMutation.mutate(count + 1)
-  }
-
-  const handleReset = () => {
-    updateCountMutation.mutate(0)
-  }
-
-  const isLoading = countLoading || tabLoading
+  const isLoading = tabLoading || status === 'loading' || gistsLoading
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   if (isLoading) {
@@ -31,7 +24,7 @@ export const Popup: React.FC = () => {
     )
   }
 
-  if (countError || tabError) {
+  if (tabError) {
     return (
       <div className="extension-popup p-4">
         <div className="text-center text-red-600">
@@ -48,63 +41,24 @@ export const Popup: React.FC = () => {
   }
 
   return (
-
-    <div className="extension-popup">
+    <div className="extension-popup h-screen flex flex-col">
       {isModalOpen && <ConnectModal onClose={() => setIsModalOpen(false)} />}
       <Header status={status} onConnect={() => setIsModalOpen(true)} />
-    <div className=" p-4">
-      <div className="space-y-4">
-        {/* Header */}
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">
-            Chrome Extension
-          </h1>
-          <p className="text-sm text-gray-600">
-            Built with Vite + Tailwind + React Queyyyy
-          </p>
-        </div>
-
-        {/* Counter Section */}
-        <div className="extension-card">
-          <h2 className="text-lg font-semibold text-gray-700 mb-3">Counter</h2>
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-gray-600">Count:</span>
-            <span className="text-2xl font-bold text-primary-600">{count}</span>
-          </div>
-          <div className="flex space-x-2">
-            <button
-              onClick={handleIncrement}
-              disabled={updateCountMutation.isPending}
-              className="extension-button flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {updateCountMutation.isPending ? 'Updating...' : 'Increment'}
-            </button>
-            <button
-              onClick={handleReset}
-              disabled={updateCountMutation.isPending}
-              className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors duration-200 flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Reset
-            </button>
+      
+      {status === 'connected' && gists ? (
+        <div className="flex-1 flex overflow-hidden">
+          <Sidebar />
+          <div className="flex-1 overflow-y-auto p-4">
+            <Gallery gists={gists} />
           </div>
         </div>
-
-        {/* Current URL Section */}
-        {currentTab?.url && (
-          <div className="extension-card">
-            <h2 className="text-lg font-semibold text-gray-700 mb-3">Current Page</h2>
-            <p className="text-sm text-gray-600 break-all">
-              {currentTab.url}
-            </p>
+      ) : (
+        <div className="flex-1 flex items-center justify-center p-4">
+          <div className="text-center">
+            <p className="text-[--nimue-gray]">Please connect to your GitHub account to use the extension</p>
           </div>
-        )}
-
-        {/* Footer */}
-        <div className="text-center text-xs text-gray-500">
-          <p>Click the extension icon to open this popup</p>
         </div>
-      </div>
-    </div>
+      )}
     </div>
   )
 } 

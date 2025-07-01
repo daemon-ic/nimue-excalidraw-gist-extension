@@ -3,10 +3,34 @@ import browser from 'webextension-polyfill'
 
 // Query keys for React Query
 export const storageKeys = {
+  githubToken: ['storage', 'githubToken'] as const,
   count: ['storage', 'count'] as const,
   settings: ['storage', 'settings'] as const,
   currentTab: ['storage', 'currentTab'] as const,
 }
+
+// export function useGithubToken() {
+//   return useQuery({
+//     queryKey: storageKeys.githubToken,
+//     queryFn: async () => {
+//       const result = await browser.storage.local.get(['githubToken'])
+//       return result.githubToken || null
+//     },
+//   })
+// }
+
+// export function useSetGithubToken() {
+//   const queryClient = useQueryClient()
+//   return useMutation({
+//     mutationFn: async (newToken: string) => {
+//       await browser.storage.local.set({ githubToken: newToken })
+//       return newToken
+//     },
+//     onSuccess: (newToken) => {
+//       queryClient.setQueryData(storageKeys.githubToken, newToken)
+//     },
+//   })
+// }
 
 // Hook for getting count from local storage
 export const useCount = () => {
