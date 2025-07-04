@@ -1,18 +1,95 @@
-import React, { useState } from 'react'
-import { useCurrentTab } from '../hooks/useStorage'
-import Header from '../components/Header'
+import React, { useState, useCallback, useMemo } from 'react'
+import Header from '@/components/Header'
 import ConnectModal from '@/components/ConnectModal'
-import { useAuthStatus } from '@/hooks/useGitHub'
 import Gallery from '@/components/Gallery'
 import Sidebar from '@/components/Sidebar'
+import { CHROME_KEYS, GIST_KEYS, GITHUB_KEYS } from '@/lib/config'
+import { getGithubTokenFn, validateGithubTokenFn } from '@/lib/github'
+import { useQuery } from '@tanstack/react-query'
+import { getAllGists } from '@/lib/gist'
+import { ConnectionStatus } from '@/types/common'
+import { Gist } from '@/types/gist'
+import { getCurrentTab } from '@/lib/chrome'
 
-export const Popup: React.FC = () => {
-  const { data: currentTab, isLoading: tabLoading, error: tabError } = useCurrentTab()
-  const { status, gists, gistsLoading } = useAuthStatus()
-  console.log(gists)
 
-  const isLoading = tabLoading || status === 'loading' || gistsLoading
+type AuthStatus = {
+  status: ConnectionStatus
+  gists: Gist[]
+  gistsLoading: boolean
+  gistsError: Error | null
+}
+
+  export const Popup: React.FC = () => {
+  const { data: currentTab, isLoading: tabLoading, error: tabError } = useQuery({
+    queryKey: CHROME_KEYS.CURRENT_TAB,
+    queryFn: getCurrentTab,
+  })
+  
+  // Move the queries to the component level
+  const { data: githubToken, isLoading: githubTokenLoading } = useQuery({
+    queryKey: GITHUB_KEYS.TOKEN,
+    queryFn: getGithubTokenFn,
+  });
+  
+  const { data: validation, isLoading: validationLoading } = useQuery({
+    queryKey: GITHUB_KEYS.VALIDATION,
+    queryFn: () => validateGithubTokenFn(githubToken),
+    enabled: !!githubToken, // Only run if we have a token
+  });
+  
+  // Only fetch gists if we have a valid token
+  const shouldFetchGists = !!githubToken && validation?.isValid;
+ 
+  const { data: gists, isLoading: gistsLoading, error: gistsError } = useQuery({
+    queryKey: GIST_KEYS.list({ page: 1, perPage: 100 }),
+    queryFn: () => getAllGists(1, 100),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: shouldFetchGists,
+  });
+
+  // Memoize the auth status calculation
+  const authStatus = useMemo((): AuthStatus => {
+    if (githubTokenLoading || validationLoading || gistsLoading) {
+      return { 
+        status: 'loading', 
+        gists: [], 
+        gistsLoading: true, 
+        gistsError: null 
+      };
+    }
+    
+    if (!githubToken || !validation?.isValid) {
+      return { 
+        status: 'disconnected', 
+        gists: [], 
+        gistsLoading: false, 
+        gistsError: null 
+      };
+    }
+    
+    return { 
+      status: 'connected', 
+      gists: gists || [], 
+      gistsLoading: gistsLoading, 
+      gistsError: gistsError || null 
+    };
+  }, [githubToken, validation, gists, githubTokenLoading, validationLoading, gistsLoading, gistsError]);
+
+  const { status, gists: authGists, gistsLoading: authGistsLoading } = authStatus;
+  console.log("getting gists after auth status", authGists)
+
+  const isLoading = tabLoading || status === 'loading' || authGistsLoading
   const [isModalOpen, setIsModalOpen] = useState(false)
+
+  // Memoize the modal close handler
+  const handleCloseModal = useCallback(() => {
+    setIsModalOpen(false)
+  }, []);
+
+  // Memoize the connect handler
+  const handleConnect = useCallback(() => {
+    setIsModalOpen(true)
+  }, []);
 
   if (isLoading) {
     return (
@@ -42,14 +119,14 @@ export const Popup: React.FC = () => {
 
   return (
     <div className="extension-popup h-screen flex flex-col">
-      {isModalOpen && <ConnectModal onClose={() => setIsModalOpen(false)} />}
-      <Header status={status} onConnect={() => setIsModalOpen(true)} />
+      {isModalOpen && <ConnectModal onClose={handleCloseModal} />}
+      <Header status={status} onConnect={handleConnect} />
       
-      {status === 'connected' && gists ? (
+      {status === 'connected' && authGists ? (
         <div className="flex-1 flex overflow-hidden">
           <Sidebar />
           <div className="flex-1 overflow-y-auto p-4">
-            <Gallery gists={gists} />
+            <Gallery gists={authGists} />
           </div>
         </div>
       ) : (

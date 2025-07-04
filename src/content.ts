@@ -147,6 +147,14 @@ browser.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       sendResponse({ success: true, count: elements.length } as any)
       break
       
+    case 'loadDrawing':
+      // Simple example - just show an alert
+      alert(`Loading drawing: ${message.title} (ID: ${message.gistId})`)
+      
+      // Send response back to popup
+      sendResponse({ success: true, message: 'Drawing loaded!' })
+      break
+      
     default:
       sendResponse({ success: false, error: 'Unknown action' } as any)
   }

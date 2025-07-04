@@ -32,6 +32,7 @@ declare module 'webextension-polyfill' {
 
   interface Tabs {
     query(queryInfo: any): Promise<any[]>
+    sendMessage(tabId: number, message: any): Promise<any>
     onUpdated: {
       addListener(
         callback: (tabId: number, changeInfo: any, tab: any) => void

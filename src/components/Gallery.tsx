@@ -1,5 +1,7 @@
 import { Gist } from "@/types/gist";
-import { getExcalidrawMetadata } from "@/lib/gist";
+import { getExcalidrawMetadata, loadDrawingFromGist } from "@/lib/gist";
+import { sleep } from "@/lib/utils";
+import browser from "webextension-polyfill";
 
 type CleanGist = {
     title: string;
@@ -11,63 +13,63 @@ type CleanGist = {
     filename: string;
 }
 
-function Drawing({ gist }: { gist: CleanGist }) {
+function Drawing({ gist }: { gist: Gist }) {
+    const handleClick = async () => {
+        try {
+            console.log('Loading drawing:', gist.description);
+            
+            // Get the active tab
+            const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+            
+            if (!tab.id) {
+                throw new Error('No active tab found');
+            }
+
+            // Send message to content script in the active tab
+            await browser.tabs.sendMessage(tab.id, {
+                action: 'loadDrawing',
+                title: gist.description,
+                gistId: gist.id
+            });
+
+            console.log('Message sent successfully');
+        } catch (error) {
+            console.error('Failed to send message:', error);
+            alert('Failed to load drawing. Make sure you are on an Excalidraw page.');
+        }
+    };
+
     return (
-        <div className="bg-white rounded-lg shadow-sm p-3 border border-gray-200 hover:shadow-md transition-shadow">
-          <h2 className="text-sm font-semibold text-gray-700 mb-2 truncate">{gist.title}</h2>
-          <div className="flex justify-between items-center text-xs text-gray-500 mb-2">
-            <span>{new Date(gist.updatedAt).toLocaleDateString()}</span>
-            <span>{gist.fileSize > 0 ? `${(gist.fileSize / 1024).toFixed(1)}KB` : 'Unknown'}</span>
-          </div>
-          <div className="flex space-x-2">
-            <a 
-              href={gist.htmlUrl} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-blue-600 hover:text-blue-800 text-xs"
-            >
-              View
-            </a>
-            {!gist.hasContent && (
-              <span className="text-orange-600 text-xs">Not cached</span>
-            )}
-          </div>
+        <div 
+            className="bg-white rounded-lg shadow-sm p-3 border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
+            onClick={handleClick}
+        >
+            <h2 className="text-sm font-semibold text-gray-700 mb-2 truncate">{gist.description}</h2>
+            <div className="flex justify-between items-center text-xs text-gray-500 mb-2">
+                <span>{new Date(gist.updated_at).toLocaleDateString()}</span>
+                {/* <span>{gist.files['drawing.excalidraw'].size > 0 ? `${(gist.files['drawing.excalidraw'].size / 1024).toFixed(1)}KB` : 'Unknown'}</span> */}
+            </div>
+            <div className="flex space-x-2">
+                <a
+                    href={gist.html_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-800 text-xs"
+                >
+                    View
+                </a>
+                {/* {!gist.files['drawing.excalidraw'].content && (
+                    <span className="text-orange-600 text-xs">Not cached</span>
+                )} */}
+            </div>
         </div>
     )
 }
 
 export default function Gallery({ gists }: { gists: Gist[] }) {
-    const formattedGists = gists
-        .map(gist => {
-            // Find the first Excalidraw file
-            const excalidrawFile = Object.values(gist.files).find(file => 
-                file.filename?.endsWith('.excalidraw') || 
-                file.filename?.endsWith('.excalidraw.json')
-            );
+    // TODO: filter only excalidraw gists
 
-            if (!excalidrawFile) {
-                return null; // Skip non-Excalidraw gists
-            }
-
-            const metadata = getExcalidrawMetadata(gist, excalidrawFile.filename);
-            
-            if (!metadata) {
-                return null;
-            }
-
-            return {
-                title: excalidrawFile.filename || 'Untitled',
-                updatedAt: gist.updated_at,
-                gistId: gist.id,
-                htmlUrl: gist.html_url,
-                fileSize: excalidrawFile.size || 0,
-                hasContent: !!excalidrawFile.content,
-                filename: excalidrawFile.filename || 'drawing.excalidraw',
-            } as CleanGist;
-        })
-        .filter((gist): gist is CleanGist => gist !== null);
-
-    if (formattedGists.length === 0) {
+    if (gists.length === 0) {
         return (
             <div className="text-center py-6 text-gray-500">
                 <p className="text-sm">No Excalidraw drawings found</p>
@@ -77,8 +79,8 @@ export default function Gallery({ gists }: { gists: Gist[] }) {
 
     return (
         <div className="gap-3 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 w-full">
-            {formattedGists.map((gist) => (
-                <Drawing key={gist.gistId} gist={gist} />
+            {gists.filter(gist => Object.values(gist.files).some(file => file.filename?.endsWith('.excalidraw'))).map((gist) => (
+                <Drawing key={gist.id} gist={gist} />
             ))}
         </div>
     )

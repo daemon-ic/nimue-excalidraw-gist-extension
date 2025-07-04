@@ -8,9 +8,6 @@
     "storage",
     "scripting"
   ],
-  "host_permissions": [
-    "<all_urls>"
-  ],
   "action": {
     "default_popup": "popup.html",
     "default_title": "Chrome Extension"
@@ -20,11 +17,18 @@
     "service_worker": "js/background.js",
     "type": "module"
   },
+  
+  "web_accessible_resources": [
+    {
+      "resources": ["assets/*"],
+      "matches": ["https://excalidraw.com/*"]
+    }
+  ],
+  "host_permissions": ["https://excalidraw.com/*"],
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["js/content.js"],
-      "run_at": "document_end"
+      "matches": ["https://excalidraw.com/*"],
+      "js": ["js/content.js"]
     }
   ]
 } 
