@@ -1,3 +1,12 @@
+export const ACTIONS = {
+    "LOAD_DRAWING": "load_drawing",
+    "SAVE_DRAWING": "save_drawing",
+    "DELETE_DRAWING": "delete_drawing",
+    "RENAME_DRAWING": "rename_drawing",
+    "COPY_DRAWING": "copy_drawing",
+}
+
+
 export const GITHUB_KEYS = {
     TOKEN: ['github', 'token'],
     VALIDATION: ['github', 'validation'],

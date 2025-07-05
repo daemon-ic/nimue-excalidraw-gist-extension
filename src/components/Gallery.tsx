@@ -1,48 +1,13 @@
 import { Gist } from "@/types/gist";
-import { getExcalidrawMetadata, loadDrawingFromGist } from "@/lib/gist";
-import { sleep } from "@/lib/utils";
 import browser from "webextension-polyfill";
+import { ExcalidrawData } from "@/types/excalidraw";
+import { getGist } from "@/lib/gist";
 
-type CleanGist = {
-    title: string;
-    updatedAt: string;
-    gistId: string;
-    htmlUrl: string;
-    fileSize: number;
-    hasContent: boolean;
-    filename: string;
-}
-
-function Drawing({ gist }: { gist: Gist }) {
-    const handleClick = async () => {
-        try {
-            console.log('Loading drawing:', gist.description);
-            
-            // Get the active tab
-            const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
-            
-            if (!tab.id) {
-                throw new Error('No active tab found');
-            }
-
-            // Send message to content script in the active tab
-            await browser.tabs.sendMessage(tab.id, {
-                action: 'loadDrawing',
-                title: gist.description,
-                gistId: gist.id
-            });
-
-            console.log('Message sent successfully');
-        } catch (error) {
-            console.error('Failed to send message:', error);
-            alert('Failed to load drawing. Make sure you are on an Excalidraw page.');
-        }
-    };
-
+function Drawing({ gist, onClick }: { gist: Gist, onClick: (gist: Gist) => void }) {
     return (
-        <div 
+        <div
             className="bg-white rounded-lg shadow-sm p-3 border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
-            onClick={handleClick}
+            onClick={() => onClick(gist)}
         >
             <h2 className="text-sm font-semibold text-gray-700 mb-2 truncate">{gist.description}</h2>
             <div className="flex justify-between items-center text-xs text-gray-500 mb-2">
@@ -58,16 +23,46 @@ function Drawing({ gist }: { gist: Gist }) {
                 >
                     View
                 </a>
-                {/* {!gist.files['drawing.excalidraw'].content && (
-                    <span className="text-orange-600 text-xs">Not cached</span>
-                )} */}
             </div>
         </div>
     )
 }
 
 export default function Gallery({ gists }: { gists: Gist[] }) {
-    // TODO: filter only excalidraw gists
+    async function handleLoadDrawing(gist: Gist) {
+        try {
+            const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+            if (!tab?.id) throw new Error("No active tab found");
+
+            const filename = Object.keys(gist.files)[0];
+            const content = gist.files[filename]?.content;
+            if (!content) throw new Error("No content in gist file");
+
+            const drawingData = JSON.parse(content) as ExcalidrawData;
+
+            await chrome.scripting.executeScript({
+                target: { tabId: tab.id },
+                func: async (gistId: string, drawingData: ExcalidrawData) => {
+                    // BACKGROUND (WEB) CONTEXT
+                    try {
+                        localStorage.setItem('excalidraw', JSON.stringify(drawingData));
+                        localStorage.setItem('excalidraw-state', JSON.stringify(drawingData.appState || {}));
+                        localStorage.setItem('version-files', JSON.stringify(drawingData.files || {}));
+                        localStorage.setItem('version-dataState', JSON.stringify(drawingData.appState || {}));
+                        localStorage.setItem('drawing-id', gistId);
+
+                        window.location.reload();
+                    } catch (error) {
+                        console.error('Failed to load or parse Excalidraw data:', error);
+                    }
+                },
+                args: [gist.id, drawingData]
+            });
+        } catch (error) {
+            console.error('Failed to load drawing:', error);
+            alert('Failed to load drawing. Make sure you are on an Excalidraw page.');
+        }
+    }
 
     if (gists.length === 0) {
         return (
@@ -80,7 +75,7 @@ export default function Gallery({ gists }: { gists: Gist[] }) {
     return (
         <div className="gap-3 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 w-full">
             {gists.filter(gist => Object.values(gist.files).some(file => file.filename?.endsWith('.excalidraw'))).map((gist) => (
-                <Drawing key={gist.id} gist={gist} />
+                <Drawing key={gist.id} gist={gist} onClick={handleLoadDrawing} />
             ))}
         </div>
     )

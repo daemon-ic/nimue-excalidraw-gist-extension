@@ -5,6 +5,7 @@
   "description": "A modern Chrome extension built with Vite, Tailwind CSS, and TypeScript",
   "permissions": [
     "activeTab",
+    "tabs",
     "storage",
     "scripting"
   ],

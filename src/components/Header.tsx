@@ -1,6 +1,7 @@
 import { ConnectionStatus } from "../types/common"
 import Button from "./Button"
 
+
 const CONNECTION_STATUS: Record<ConnectionStatus, { label: string, color: string }> = {
     "connected": {
         "label": "Connected",

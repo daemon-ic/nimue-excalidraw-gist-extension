@@ -2,6 +2,7 @@ import { ExcalidrawData } from "@/types/excalidraw";
 import { Gist } from "@/types/gist";
 import { createGist, updateGist } from "./gist";
 import { getGithubTokenFn } from "./github";
+import browser from "webextension-polyfill";
 
 export async function createExcalidrawGist(
     drawingData: ExcalidrawData,
@@ -124,29 +125,46 @@ export async function createExcalidrawGist(
     };
   }
   
-  export async function loadDrawingFromGist(gist: Gist): Promise<void> {
-    try {
-      console.log("Loading drawing from gist", gist.id);
-      console.log("Gist", gist);
-      console.log("Gist files", gist.files);
-      const filename = Object.keys(gist.files)[0];
-      console.log("Gist files[filename]", gist.files[filename]);
+//   export async function loadDrawingContentScript(gist: Gist): Promise<void> {
+//     try {
+//       console.log("CONTENT SCRIPT: Loading drawing from gist", gist.id)
+//       const drawingData = await extractExcalidrawData(gist);
   
-      const drawingData = await extractExcalidrawData(gist);
+//       if (!drawingData) {
+//         throw new Error('No Excalidraw data found in gist');
+//       }
   
-      if (!drawingData) {
-        throw new Error('No Excalidraw data found in gist');
-      }
+//       localStorage.setItem('excalidraw', JSON.stringify(drawingData));
+//       localStorage.setItem('excalidraw-state', JSON.stringify(drawingData.appState || {}));
+//       localStorage.setItem('version-files', JSON.stringify(drawingData.files || {}));
+//       localStorage.setItem('version-dataState', JSON.stringify(drawingData.appState || {}));
+//       localStorage.setItem('drawing-id', gist.id);
   
-      localStorage.setItem('excalidraw', JSON.stringify(drawingData));
-      localStorage.setItem('excalidraw-state', JSON.stringify(drawingData.appState || {}));
-      localStorage.setItem('version-files', JSON.stringify(drawingData.files || {}));
-      localStorage.setItem('version-dataState', JSON.stringify(drawingData.appState || {}));
-      localStorage.setItem('drawing-id', gist.id);
+//       window.location.reload();
+//     } catch (error) {
+//       console.error('Failed to load drawing:', error);
+//       throw error;
+//     }
+//   }
   
-      window.location.reload();
-    } catch (error) {
-      console.error('Failed to load drawing:', error);
-      throw error;
-    }
-  } 
+//   export async function loadDrawingBackgroundScript(gist: Gist): Promise<void> {
+//     console.log("BACKGROUND SCRIPT: Loading drawing from gist", gist.id)
+
+//     const drawingData = await extractExcalidrawData(gist);
+
+//     if (!drawingData) {
+//       throw new Error('No Excalidraw data found in gist');
+//     }
+
+//     localStorage.setItem('excalidraw', JSON.stringify(drawingData));
+//       localStorage.setItem('excalidraw-state', JSON.stringify(drawingData.appState || {}));
+//       localStorage.setItem('version-files', JSON.stringify(drawingData.files || {}));
+//       localStorage.setItem('version-dataState', JSON.stringify(drawingData.appState || {}));
+//       localStorage.setItem('drawing-id', gist.id);
+
+//     if (!drawingData) {
+//       throw new Error('No Excalidraw data found in gist');
+//     }
+    
+
+//   }
