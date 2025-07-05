@@ -14,7 +14,7 @@ async function makeRequest(endpoint: string, options: RequestInit = {}) {
   const response = await fetch(`${GITHUB_API_BASE}${endpoint}`, {
     headers: {
       'Authorization': `token ${token}`,
-      'Accept': 'application/vnd.github.v3+json',
+      'Accept': 'application/vnd.github.raw+json',
       'Content-Type': 'application/json',
       ...options.headers,
     },
