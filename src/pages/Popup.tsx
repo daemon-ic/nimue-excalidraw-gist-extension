@@ -3,9 +3,10 @@ import Header from '@/components/Header'
 import ConnectModal from '@/components/ConnectModal'
 import Gallery from '@/components/Gallery'
 import Sidebar from '@/components/Sidebar'
+import LoadingOverlay from '@/components/LoadingOverlay'
 import { CHROME_KEYS, GIST_KEYS, GITHUB_KEYS } from '@/lib/config'
 import { getGithubTokenFn, validateGithubTokenFn } from '@/lib/github'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getAllGists } from '@/lib/gist'
 import { ConnectionStatus } from '@/types/common'
 import { Gist } from '@/types/gist'
@@ -19,7 +20,10 @@ type AuthStatus = {
   gistsError: Error | null
 }
 
-  export const Popup: React.FC = () => {
+export const Popup: React.FC = () => {
+  const queryClient = useQueryClient();
+
+  
   const { data: currentTab, isLoading: tabLoading, error: tabError } = useQuery({
     queryKey: CHROME_KEYS.CURRENT_TAB,
     queryFn: getCurrentTab,
@@ -40,10 +44,9 @@ type AuthStatus = {
   // Only fetch gists if we have a valid token
   const shouldFetchGists = !!githubToken && validation?.isValid;
  
-  const { data: gists, isLoading: gistsLoading, error: gistsError } = useQuery({
+  const { data: gists, isLoading: gistsLoading, error: gistsError, refetch: refetchGists } = useQuery({
     queryKey: GIST_KEYS.list({ page: 1, perPage: 100 }),
     queryFn: () => getAllGists(1, 100),
-    staleTime: 5 * 60 * 1000, // 5 minutes
     enabled: shouldFetchGists,
   });
 
@@ -91,6 +94,11 @@ type AuthStatus = {
     setIsModalOpen(true)
   }, []);
 
+  // Memoize the refresh handler
+  const handleRefresh = useCallback(() => {
+    queryClient.refetchQueries({ queryKey: GIST_KEYS.list({ page: 1, perPage: 100 }) });
+  }, [queryClient]);
+
   if (isLoading) {
     return (
       <div className="extension-popup p-4">
@@ -118,9 +126,9 @@ type AuthStatus = {
   }
 
   return (
-    <div className="extension-popup h-screen flex flex-col">
+    <div className="extension-popup h-screen flex flex-col relative">
       {isModalOpen && <ConnectModal onClose={handleCloseModal} />}
-      <Header status={status} onConnect={handleConnect} />
+      <Header status={status} onConnect={handleConnect} onRefresh={handleRefresh} />
       
       {status === 'connected' && authGists ? (
         <div className="flex-1 flex overflow-hidden">

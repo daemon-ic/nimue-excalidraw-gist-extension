@@ -1,69 +1,90 @@
 import { Gist } from "@/types/gist";
-import browser from "webextension-polyfill";
-import { ExcalidrawData } from "@/types/excalidraw";
-import { getGist } from "@/lib/gist";
+import { useActiveProject } from "@/hooks/useActiveProject";
+import { loadDrawingBackgroundScript } from "@/lib/excalidraw";
+import { useState, useMemo } from "react";
 
-function Drawing({ gist, onClick }: { gist: Gist, onClick: (gist: Gist) => void }) {
+function formatDate(dateString: string) {
+    const date = new Date(dateString);
+    
+    // Format as "YYYY-MM-DD h:mmam/pm"
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = date.getHours();
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    
+    // Convert to 12-hour format with am/pm
+    const ampm = hours >= 12 ? 'pm' : 'am';
+    const displayHours = hours % 12 || 12;
+    
+    return `${year}-${month}-${day} ${displayHours}:${minutes}${ampm}`;
+}
+
+function Drawing({ gist, isSelected, onSelect, isLoading }: { 
+    gist: Gist, 
+    isSelected: boolean,
+    onSelect: (gist: Gist) => void,
+    isLoading?: boolean
+}) {
     return (
         <div
-            className="bg-white rounded-lg shadow-sm p-3 border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
-            onClick={() => onClick(gist)}
+            className={`bg-white rounded-lg shadow-sm p-3 border transition-all cursor-pointer ${
+                isSelected 
+                    ? 'border-[--excali-purple] shadow-md bg-[--excali-light-purple]' 
+                    : 'border-gray-200 hover:shadow-md hover:border-gray-300'
+            } ${isLoading ? 'opacity-50' : ''}`}
+            onClick={() => !isLoading && onSelect(gist)}
         >
-            <h2 className="text-sm font-semibold text-gray-700 mb-2 truncate">{gist.description}</h2>
-            <div className="flex justify-between items-center text-xs text-gray-500 mb-2">
-                <span>{new Date(gist.updated_at).toLocaleDateString()}</span>
-                {/* <span>{gist.files['drawing.excalidraw'].size > 0 ? `${(gist.files['drawing.excalidraw'].size / 1024).toFixed(1)}KB` : 'Unknown'}</span> */}
+            <h2 className={`text-sm font-semibold mb-2 truncate ${
+                isSelected ? 'text-[--excali-purple]' : 'text-gray-700'
+            }`}>
+                {gist.description}
+            </h2>
+            <div className="flex flex-col justify-between items-center text-[10px] text-gray-500 mb-2">
+                <span className="text-[10px] w-full text-left">Last Updated</span>
+                <span className="text-[10px] w-full text-left">{formatDate(gist.updated_at)}</span>
             </div>
-            <div className="flex space-x-2">
-                <a
-                    href={gist.html_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:text-blue-800 text-xs"
-                >
-                    View
-                </a>
-            </div>
+            {isLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-white/80 rounded-lg">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[--excali-purple]"></div>
+                </div>
+            )}
         </div>
     )
 }
 
 export default function Gallery({ gists }: { gists: Gist[] }) {
-    async function handleLoadDrawing(gist: Gist) {
-        try {
-            const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
-            if (!tab?.id) throw new Error("No active tab found");
+    const { activeProject, setActiveProject } = useActiveProject();
+    const [loadingGistId, setLoadingGistId] = useState<string | null>(null);
 
-            const gistFiles = await getGist(gist.id);
-            const filename = Object.keys(gistFiles.files)[0];
-            const file = gistFiles.files[filename];
-            const content = file.content;
-            if (!content) throw new Error("No content in gist file");
+    // Sort gists by last modified date (newest first)
+    const sortedGists = useMemo(() => {
+        const excalidrawGists = gists.filter(gist => 
+            Object.values(gist.files).some(file => file.filename?.endsWith('.excalidraw'))
+        );
+        
+        return excalidrawGists.sort((a, b) => 
+            new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+        );
+    }, [gists]);
 
-            const drawingData = JSON.parse(content) as ExcalidrawData;
-
-
-            await chrome.scripting.executeScript({
-                target: { tabId: tab.id },
-                func: async (gistId: string, drawingData: ExcalidrawData) => {
-                    // BACKGROUND (WEB) CONTEXT
-                    try {
-                        localStorage.setItem('excalidraw', JSON.stringify(drawingData.elements));
-                        localStorage.setItem('excalidraw-state', JSON.stringify(drawingData.appState || {}));
-                        localStorage.setItem('version-files', JSON.stringify(drawingData.files || {}));
-                        localStorage.setItem('version-dataState', JSON.stringify(drawingData.appState || {}));
-                        localStorage.setItem('drawing-id', gistId);
-
-                        window.location.reload();
-                    } catch (error) {
-                        console.error('Failed to load or parse Excalidraw data:', error);
-                    }
-                },
-                args: [gist.id, drawingData]
-            });
-        } catch (error) {
-            console.error('Failed to load drawing:', error);
-            alert('Failed to load drawing. Make sure you are on an Excalidraw page.');
+    async function handleSelectDrawing(gist: Gist) {
+        // If clicking the same project, deselect it
+        if (activeProject?.id === gist.id) {
+            setActiveProject(null);
+        } else {
+            // Set as active project and load it
+            setActiveProject(gist);
+            setLoadingGistId(gist.id);
+            
+            try {
+                await loadDrawingBackgroundScript(gist);
+            } catch (error) {
+                console.error('Failed to load drawing:', error);
+                alert('Failed to load drawing. Make sure you are on an Excalidraw page.');
+            } finally {
+                setLoadingGistId(null);
+            }
         }
     }
 
@@ -77,8 +98,14 @@ export default function Gallery({ gists }: { gists: Gist[] }) {
 
     return (
         <div className="gap-3 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 w-full">
-            {gists.filter(gist => Object.values(gist.files).some(file => file.filename?.endsWith('.excalidraw'))).map((gist) => (
-                <Drawing key={gist.id} gist={gist} onClick={handleLoadDrawing} />
+            {sortedGists.map((gist) => (
+                <Drawing 
+                    key={gist.id} 
+                    gist={gist} 
+                    isSelected={activeProject?.id === gist.id}
+                    onSelect={handleSelectDrawing}
+                    isLoading={loadingGistId === gist.id}
+                />
             ))}
         </div>
     )

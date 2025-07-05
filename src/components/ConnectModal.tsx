@@ -1,5 +1,6 @@
 import Modal from "./Modal"
 import Button from "./Button"
+import Input from "./Input"
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getGithubTokenFn, setGithubTokenFn, validateGithubTokenFn } from "@/lib/github";
@@ -93,11 +94,10 @@ export default function ConnectModal({ onClose }: { onClose: () => void }) {
             <div className="flex flex-col gap-4 w-full">
                 <p>Connect to Github to get started</p>
                 <div>
-                    <input
+                    <Input
                         type="password"
                         value={value}
                         onChange={(e) => setInputValue(e.target.value)}
-                        className="w-full border border-gray-300 rounded-md p-2"
                         placeholder="GitHub Personal Access Token"
                         disabled={isProcessing}
                     />
