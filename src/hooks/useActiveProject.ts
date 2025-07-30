@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import browser from 'webextension-polyfill';
 import { Gist } from '@/types/gist';
-import { STORAGE_KEYS } from '@/lib/config';
+import { STORAGE_KEYS } from '@/services/config';
 
 // Storage functions
 async function getActiveProjectFn(): Promise<Gist | null> {

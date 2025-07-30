@@ -3,85 +3,82 @@ import Header from '@/components/Header'
 import ConnectModal from '@/components/ConnectModal'
 import Gallery from '@/components/Gallery'
 import Sidebar from '@/components/Sidebar'
-import LoadingOverlay from '@/components/LoadingOverlay'
-import { CHROME_KEYS, GIST_KEYS, GITHUB_KEYS } from '@/lib/config'
-import { getGithubTokenFn, validateGithubTokenFn } from '@/lib/github'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { getAllGists } from '@/lib/gist'
+import { CHROME_KEYS } from '@/services/config'
+import { useGithubToken, useCurrentGithubValidation } from '@/hooks/useGithub'
+import { useQuery } from '@tanstack/react-query'
 import { ConnectionStatus } from '@/types/common'
 import { Gist } from '@/types/gist'
-import { getCurrentTab } from '@/lib/chrome'
+import { getCurrentTab } from '@/services/chrome'
+import { useGetGists } from '@/hooks/useGist'
 
 
 type AuthStatus = {
   status: ConnectionStatus
   gists: Gist[]
-  gistsLoading: boolean
+  isGistsLoading: boolean
   gistsError: Error | null
 }
 
 export const Popup: React.FC = () => {
-  const queryClient = useQueryClient();
 
-  
+
   const { data: currentTab, isLoading: tabLoading, error: tabError } = useQuery({
     queryKey: CHROME_KEYS.CURRENT_TAB,
     queryFn: getCurrentTab,
   })
-  
-  // Move the queries to the component level
-  const { data: githubToken, isLoading: githubTokenLoading } = useQuery({
-    queryKey: GITHUB_KEYS.TOKEN,
-    queryFn: getGithubTokenFn,
-  });
-  
-  const { data: validation, isLoading: validationLoading } = useQuery({
-    queryKey: GITHUB_KEYS.VALIDATION,
-    queryFn: () => validateGithubTokenFn(githubToken),
-    enabled: !!githubToken, // Only run if we have a token
-  });
-  
+
+  const { githubToken, isGettingGithubToken } = useGithubToken();
+  const { currentValidation, isLoadingCurrentValidation } = useCurrentGithubValidation();
+
+
   // Only fetch gists if we have a valid token
-  const shouldFetchGists = !!githubToken && validation?.isValid;
- 
-  const { data: gists, isLoading: gistsLoading, error: gistsError, refetch: refetchGists } = useQuery({
-    queryKey: GIST_KEYS.list({ page: 1, perPage: 100 }),
-    queryFn: () => getAllGists(1, 100),
-    enabled: shouldFetchGists,
-  });
+
+  const { gists, isGistsLoading, gistsError, refetchGists } = useGetGists(
+    githubToken,
+    currentValidation,
+  );
+
 
   // Memoize the auth status calculation
   const authStatus = useMemo((): AuthStatus => {
-    if (githubTokenLoading || validationLoading || gistsLoading) {
-      return { 
-        status: 'loading', 
-        gists: [], 
-        gistsLoading: true, 
-        gistsError: null 
+    if (isGettingGithubToken || isLoadingCurrentValidation || isGistsLoading) {
+      return {
+        status: 'loading',
+        gists: [],
+        isGistsLoading: true,
+        gistsError: null
       };
     }
-    
-    if (!githubToken || !validation?.isValid) {
-      return { 
-        status: 'disconnected', 
-        gists: [], 
-        gistsLoading: false, 
-        gistsError: null 
-      };
-    }
-    
-    return { 
-      status: 'connected', 
-      gists: gists || [], 
-      gistsLoading: gistsLoading, 
-      gistsError: gistsError || null 
-    };
-  }, [githubToken, validation, gists, githubTokenLoading, validationLoading, gistsLoading, gistsError]);
 
-  const { status, gists: authGists, gistsLoading: authGistsLoading } = authStatus;
+    if (!githubToken || !currentValidation?.isValid) {
+      return {
+        status: 'disconnected',
+        gists: [],
+        isGistsLoading: false,
+        gistsError: null
+      };
+    }
+
+    return {
+      status: 'connected',
+      gists: gists || [],
+      isGistsLoading: isGistsLoading,
+      gistsError: gistsError || null
+    };
+  }, [
+    githubToken,
+    currentValidation,
+    gists,
+    isGettingGithubToken,
+    isLoadingCurrentValidation,
+    isGistsLoading,
+    gistsError
+  ]);
+
+  const { status, gists: authGists, isGistsLoading: authGistsLoading } = authStatus;
   console.log("getting gists after auth status", authGists)
 
-  const isLoading = tabLoading || status === 'loading' || authGistsLoading
+  const isLoading = tabLoading || status === 'loading' || authGistsLoading || isGistsLoading
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   // Memoize the modal close handler
@@ -96,8 +93,8 @@ export const Popup: React.FC = () => {
 
   // Memoize the refresh handler
   const handleRefresh = useCallback(() => {
-    queryClient.refetchQueries({ queryKey: GIST_KEYS.list({ page: 1, perPage: 100 }) });
-  }, [queryClient]);
+    refetchGists();
+  }, [refetchGists]);
 
   if (isLoading) {
     return (
@@ -114,8 +111,8 @@ export const Popup: React.FC = () => {
       <div className="extension-popup p-4">
         <div className="text-center text-red-600">
           <p>Error loading extension data</p>
-          <button 
-            onClick={() => window.location.reload()} 
+          <button
+            onClick={() => window.location.reload()}
             className="mt-2 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
           >
             Retry
@@ -129,7 +126,7 @@ export const Popup: React.FC = () => {
     <div className="extension-popup h-screen flex flex-col relative">
       {isModalOpen && <ConnectModal onClose={handleCloseModal} />}
       <Header status={status} onConnect={handleConnect} onRefresh={handleRefresh} />
-      
+
       {status === 'connected' && authGists ? (
         <div className="flex-1 flex overflow-hidden">
           <Sidebar />

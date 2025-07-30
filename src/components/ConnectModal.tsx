@@ -2,92 +2,49 @@ import Modal from "./Modal"
 import Button from "./Button"
 import Input from "./Input"
 import { useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getGithubTokenFn, setGithubTokenFn, validateGithubTokenFn } from "@/lib/github";
-import { GITHUB_KEYS } from "@/lib/config";
+import { useCurrentGithubValidation, useGithubToken, useSetGithubToken, useValidateGithubToken } from "@/hooks/useGithub";
 
 export default function ConnectModal({ onClose }: { onClose: () => void }) {
-
     const [inputValue, setInputValue] = useState<string | undefined>(undefined);
-    const queryClient = useQueryClient();
-    
-    const {
-        data: githubToken,
-        isLoading: isLoadingGithubToken,
-    } = useQuery({
-        queryKey: GITHUB_KEYS.TOKEN,
-        queryFn: getGithubTokenFn,
-    });
+    const { githubToken, isGettingGithubToken } = useGithubToken();
+    const { setGithubToken, isSettingGithubToken } = useSetGithubToken({ onSuccess: onClose });
+    const { currentValidation, isLoadingCurrentValidation } = useCurrentGithubValidation();
+    const { validateGithubToken, isValidatingToken, newValidationAttempt } = useValidateGithubToken();
 
-    // Query to validate the current token
-    const {
-        data: currentValidation,
-        isLoading: isLoadingValidation,
-    } = useQuery({
-        queryKey: GITHUB_KEYS.VALIDATION,
-        queryFn: () => validateGithubTokenFn(githubToken),
-        enabled: !!githubToken, // Only run if we have a token
-    });
-
-    const {
-        mutate: setGithubToken,
-        isPending: isSettingToken,
-    } = useMutation({
-        mutationFn: setGithubTokenFn,
-        onSuccess: (newToken) => {
-            queryClient.setQueryData(GITHUB_KEYS.TOKEN, newToken);
-            queryClient.invalidateQueries({ queryKey: GITHUB_KEYS.VALIDATION });
-            onClose();
-        },
-    });
-
-    const {
-        mutate: validateGithubToken,
-        isPending: isValidatingToken,
-        data: validateGithubTokenResult,
-        error: validationError,
-    } = useMutation({
-        mutationFn: (token: string) => validateGithubTokenFn(token),
-        onSuccess: (result, token) => {
-            queryClient.setQueryData(GITHUB_KEYS.VALIDATION, result);
-            queryClient.invalidateQueries({ queryKey: GITHUB_KEYS.VALIDATION });
-        },
-    });
-
-    const value = inputValue !== undefined
+    const value = (inputValue !== undefined)
         ? inputValue
         : githubToken || "";
+
 
     function handleSaveGithubToken() {
         if (!value.trim()) {
             return;
         }
 
-        // If the input value is different from the current token, validate it first
-        if (value !== githubToken) {
-            validateGithubToken(value, {
-                onSuccess: (result) => {
-                    if (result.isValid) {
-                        setGithubToken(value);
-                    }
-                },
-                onError: (error) => {
-                    console.error('Token validation failed:', error);
-                }
-            });
-        } else {
-            // If it's the same token, just close the modal
+        if (value === githubToken) {
             onClose();
+            return;
         }
+
+        validateGithubToken(value, {
+            onSuccess: (result) => {
+                if (result.isValid) {
+                    setGithubToken(value);
+                }
+            },
+            onError: (error) => {
+                console.error('Token validation failed:', error);
+            }
+        });
     }
 
-    const isProcessing = isSettingToken || isValidatingToken || isLoadingGithubToken || isLoadingValidation;
-    
+    const isProcessing = isSettingGithubToken || isValidatingToken || isGettingGithubToken || isLoadingCurrentValidation;
+
     // Show error from validation mutation or current validation
-    const hasError = (validateGithubTokenResult && !validateGithubTokenResult.isValid) || 
-                    (currentValidation && !currentValidation.isValid);
-    
-    const errorMessage = validateGithubTokenResult?.error || currentValidation?.error;
+    const hasError = (newValidationAttempt && !newValidationAttempt.isValid) ||
+        (currentValidation && !currentValidation.isValid);
+
+    const errorMessage = !newValidationAttempt?.isValid || !currentValidation?.isValid;
 
     return (
         <Modal title="Connect to Github" handleOnClose={onClose}>
@@ -118,10 +75,10 @@ export default function ConnectModal({ onClose }: { onClose: () => void }) {
                 {githubToken && !inputValue && (
                     <div className="p-3 bg-gray-50 border border-gray-200 rounded-md">
                         <p className="text-sm text-gray-700">
-                            {isLoadingValidation ? "Validating current token..." : 
-                             currentValidation?.isValid ? 
-                             `✅ Current token is valid! Logged in as: ${currentValidation.user?.login}` :
-                             "❌ Current token is invalid"
+                            {isLoadingCurrentValidation ? "Validating current token..." :
+                                currentValidation?.isValid ?
+                                    `✅ Current token is valid! Logged in as: ${currentValidation.user?.login}` :
+                                    "❌ Current token is invalid"
                             }
                         </p>
                     </div>
@@ -137,22 +94,22 @@ export default function ConnectModal({ onClose }: { onClose: () => void }) {
                 )}
 
                 {/* Success Message for new token validation */}
-                {validateGithubTokenResult?.isValid && (
+                {newValidationAttempt?.isValid && (
                     <div className="p-3 bg-green-50 border border-green-200 rounded-md">
                         <p className="text-sm text-green-700">
-                            ✅ Token is valid! Logged in as: 
-                            <span className="font-bold">{validateGithubTokenResult.user?.login}</span>
+                            ✅ Token is valid! Logged in as:
+                            <span className="font-bold">{newValidationAttempt.user?.login}</span>
                         </p>
                     </div>
                 )}
 
                 <div className="flex gap-3">
                     <Button
-                        onClick={isProcessing || !value.trim() ? () => {} : handleSaveGithubToken}
+                        onClick={isProcessing || !value.trim() ? () => { } : handleSaveGithubToken}
                         className={isProcessing || !value.trim() ? "opacity-50 cursor-not-allowed" : ""}
                     >
-                        {isProcessing ? "Processing..." : 
-                         githubToken && value === githubToken ? "Close" : "Connect"}
+                        {isProcessing ? "Processing..." :
+                            githubToken && value === githubToken ? "Close" : "Connect"}
                     </Button>
                     <Button onClick={onClose} variant="secondary">
                         Cancel

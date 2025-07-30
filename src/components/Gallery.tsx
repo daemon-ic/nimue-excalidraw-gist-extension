@@ -1,6 +1,6 @@
 import { Gist } from "@/types/gist";
 import { useActiveProject } from "@/hooks/useActiveProject";
-import { loadDrawingBackgroundScript } from "@/lib/excalidraw";
+import { LoadDrawingBgScript } from "@/services/background-web-scripts";
 import { useState, useMemo } from "react";
 
 function formatDate(dateString: string) {
@@ -78,7 +78,7 @@ export default function Gallery({ gists }: { gists: Gist[] }) {
             setLoadingGistId(gist.id);
             
             try {
-                await loadDrawingBackgroundScript(gist);
+                await LoadDrawingBgScript.run(gist);
             } catch (error) {
                 console.error('Failed to load drawing:', error);
                 alert('Failed to load drawing. Make sure you are on an Excalidraw page.');

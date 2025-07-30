@@ -1,8 +1,8 @@
-import { FiEdit3, FiFilePlus, FiPlus, FiSave, FiCopy, FiExternalLink } from "react-icons/fi";
+import { FiEdit3, FiPlus, FiSave, FiCopy, FiExternalLink } from "react-icons/fi";
 import { useActiveProject } from "@/hooks/useActiveProject";
-import { loadDrawingBackgroundScript, saveDrawingBackgroundScript, createNewDrawingBackgroundScript, copyDrawingBackgroundScript } from "@/lib/excalidraw";
+import { CreateGistMsg, CopyGistMsg, UpdateGistMsg } from "@/services/background";
 import { useQueryClient } from "@tanstack/react-query";
-import { GIST_KEYS } from "@/lib/config";
+import { GIST_KEYS } from "@/services/config";
 import { useState } from "react";
 import NameDrawingModal from "./NameDrawingModal";
 import RenameDrawingModal from "./RenameDrawingModal";
@@ -54,15 +54,13 @@ export default function Sidebar() {
         setLoadingMessage("Creating new drawing...");
         
         try {
-            const newGist = await createNewDrawingBackgroundScript(name);
-            
-            // Refetch the gist data to get the latest version
-            await queryClient.invalidateQueries({ queryKey: GIST_KEYS.list({ page: 1, perPage: 100 }) });
-            
+            await CreateGistMsg.send(name);
+            await queryClient.invalidateQueries({ queryKey: GIST_KEYS.LIST });
             alert("New drawing created successfully!");
         } catch (error) {
             console.error('Failed to create new drawing:', error);
-            alert('Failed to create new drawing.');
+            const errorMessage = error instanceof Error ? error.message : 'Failed to create new drawing.';
+            alert(errorMessage);
         } finally {
             setIsLoading(false);
             setLoadingMessage("");
@@ -71,23 +69,17 @@ export default function Sidebar() {
 
     const handleSaveDrawing = async () => {
         if (!activeProject) return;
-        
         setIsLoading(true);
         setLoadingMessage("Saving drawing...");
         
         try {
-            const updatedGist = await saveDrawingBackgroundScript(activeProject);
-            
-            // Refetch the gist data to get the latest version
-            await queryClient.invalidateQueries({ queryKey: GIST_KEYS.list({ page: 1, perPage: 100 }) });
-            
-            // Update the active project with the latest data
-            queryClient.setQueryData(['active-project'], updatedGist);
-            
+            await UpdateGistMsg.send(activeProject);
+            await queryClient.invalidateQueries({ queryKey: GIST_KEYS.LIST });
             alert("Drawing saved successfully!");
         } catch (error) {
             console.error('Failed to save drawing:', error);
-            alert('Failed to save drawing. Make sure you are on an Excalidraw page.');
+            const errorMessage = error instanceof Error ? error.message : 'Failed to save drawing. Make sure you are on an Excalidraw page.';
+            alert(errorMessage);
         } finally {
             setIsLoading(false);
             setLoadingMessage("");
@@ -106,9 +98,9 @@ export default function Sidebar() {
         setLoadingMessage("Renaming drawing...");
         
         try {
-            // TODO: Implement rename functionality
-            console.log("Renaming drawing from", activeProject.description, "to", newName);
-            alert("Rename functionality coming soon!");
+            await CopyGistMsg.send(activeProject, newName);
+            await queryClient.invalidateQueries({ queryKey: GIST_KEYS.LIST });
+            alert("Drawing copied successfully!");
         } catch (error) {
             console.error('Failed to rename drawing:', error);
             alert('Failed to rename drawing.');
@@ -130,15 +122,13 @@ export default function Sidebar() {
         setLoadingMessage("Copying drawing...");
         
         try {
-            const copiedGist = await copyDrawingBackgroundScript(activeProject, newName);
-            
-            // Refetch the gist data to get the latest version
-            await queryClient.invalidateQueries({ queryKey: GIST_KEYS.list({ page: 1, perPage: 100 }) });
-            
+            await CopyGistMsg.send(activeProject, newName);
+            await queryClient.invalidateQueries({ queryKey: GIST_KEYS.LIST });
             alert("Drawing copied successfully!");
         } catch (error) {
             console.error('Failed to copy drawing:', error);
-            alert('Failed to copy drawing.');
+            const errorMessage = error instanceof Error ? error.message : 'Failed to copy drawing.';
+            alert(errorMessage);
         } finally {
             setIsLoading(false);
             setLoadingMessage("");
@@ -155,7 +145,7 @@ export default function Sidebar() {
             label: "New",
             icon: FiPlus,
             onClick: handleNewDrawing,
-            disabled: false, // Always enabled
+            disabled: false,
         },
         {
             label: "Save",
