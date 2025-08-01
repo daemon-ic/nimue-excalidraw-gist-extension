@@ -29,17 +29,11 @@ export const Popup: React.FC = () => {
 
   const { githubToken, isGettingGithubToken } = useGithubToken();
   const { currentValidation, isLoadingCurrentValidation } = useCurrentGithubValidation();
-
-
-  // Only fetch gists if we have a valid token
-
   const { gists, isGistsLoading, gistsError, refetchGists } = useGetGists(
     githubToken,
     currentValidation,
   );
 
-
-  // Memoize the auth status calculation
   const authStatus = useMemo((): AuthStatus => {
     if (isGettingGithubToken || isLoadingCurrentValidation || isGistsLoading) {
       return {
@@ -81,20 +75,17 @@ export const Popup: React.FC = () => {
   const isLoading = tabLoading || status === 'loading' || authGistsLoading || isGistsLoading
   const [isModalOpen, setIsModalOpen] = useState(false)
 
-  // Memoize the modal close handler
   const handleCloseModal = useCallback(() => {
     setIsModalOpen(false)
   }, []);
 
-  // Memoize the connect handler
   const handleConnect = useCallback(() => {
     setIsModalOpen(true)
   }, []);
 
-  // Memoize the refresh handler
   const handleRefresh = useCallback(() => {
     refetchGists();
-  }, [refetchGists]);
+  }, []);
 
   if (isLoading) {
     return (

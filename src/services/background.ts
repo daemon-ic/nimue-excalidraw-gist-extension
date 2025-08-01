@@ -135,6 +135,11 @@ export class CreateGistMsg {
                     }
                 }
             });
+
+            console.log('newGist', newGist)
+           
+
+
             
             return { success: true, gist: newGist };
         } catch (error) {

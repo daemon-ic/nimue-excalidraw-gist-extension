@@ -7,31 +7,30 @@ import { useState } from "react";
 import NameDrawingModal from "./NameDrawingModal";
 import RenameDrawingModal from "./RenameDrawingModal";
 import LoadingOverlay from "./LoadingOverlay";
+import { Gist } from "@/types/gist";
 
-function SidebarButton({ 
-    label, 
-    onClick, 
-    Icon, 
-    disabled = false 
-}: { 
-    label: string, 
-    onClick: () => void, 
+function SidebarButton({
+    label,
+    onClick,
+    Icon,
+    disabled = false
+}: {
+    label: string,
+    onClick: () => void,
     Icon: React.ElementType,
-    disabled?: boolean 
+    disabled?: boolean
 }) {
     return (
-        <button 
-            onClick={onClick} 
+        <button
+            onClick={onClick}
             disabled={disabled}
-            className={`flex flex-col items-center justify-center rounded-lg p-2 transition-all ${
-                disabled 
-                    ? 'opacity-30 cursor-not-allowed' 
-                    : 'hover:bg-[--excali-light-purple] hover:text-[--excali-dark-purple]'
-            }`}
+            className={`flex flex-col items-center justify-center rounded-lg p-2 transition-all ${disabled
+                ? 'opacity-30 cursor-not-allowed'
+                : 'hover:bg-[--excali-light-purple] hover:text-[--excali-dark-purple]'
+                }`}
         >
-            <Icon className={`w-4 h-4 ${
-                disabled ? 'text-gray-400' : 'text-[--nimue-dark-gray]'
-            }`} />
+            <Icon className={`w-4 h-4 ${disabled ? 'text-gray-400' : 'text-[--nimue-dark-gray]'
+                }`} />
         </button>
     )
 }
@@ -45,17 +44,28 @@ export default function Sidebar() {
     const [isLoading, setIsLoading] = useState(false);
     const [loadingMessage, setLoadingMessage] = useState("");
 
-    const handleNewDrawing = () => {
+    const handleOpenNewDrawingModal = () => {
         setShowNewModal(true);
     };
+
+
+
+    function updateDrawingList(gist: Gist) {
+        queryClient.invalidateQueries({ queryKey: GIST_KEYS.LIST });
+        queryClient.invalidateQueries({ queryKey: GIST_KEYS.DETAIL(gist.id) });
+    }
+
+
+
+
 
     const handleCreateNewDrawing = async (name: string) => {
         setIsLoading(true);
         setLoadingMessage("Creating new drawing...");
-        
+
         try {
-            await CreateGistMsg.send(name);
-            await queryClient.invalidateQueries({ queryKey: GIST_KEYS.LIST });
+            const newGist = await CreateGistMsg.send(name);
+            updateDrawingList(newGist);
             alert("New drawing created successfully!");
         } catch (error) {
             console.error('Failed to create new drawing:', error);
@@ -71,10 +81,9 @@ export default function Sidebar() {
         if (!activeProject) return;
         setIsLoading(true);
         setLoadingMessage("Saving drawing...");
-        
         try {
-            await UpdateGistMsg.send(activeProject);
-            await queryClient.invalidateQueries({ queryKey: GIST_KEYS.LIST });
+            const updatedGist = await UpdateGistMsg.send(activeProject);
+            updateDrawingList(updatedGist);
             alert("Drawing saved successfully!");
         } catch (error) {
             console.error('Failed to save drawing:', error);
@@ -93,13 +102,13 @@ export default function Sidebar() {
 
     const handleRenameSubmit = async (newName: string) => {
         if (!activeProject) return;
-        
+
         setIsLoading(true);
         setLoadingMessage("Renaming drawing...");
-        
+
         try {
-            await CopyGistMsg.send(activeProject, newName);
-            await queryClient.invalidateQueries({ queryKey: GIST_KEYS.LIST });
+            const renamedGist = await CopyGistMsg.send(activeProject, newName);
+            updateDrawingList(renamedGist);
             alert("Drawing copied successfully!");
         } catch (error) {
             console.error('Failed to rename drawing:', error);
@@ -117,13 +126,13 @@ export default function Sidebar() {
 
     const handleCopySubmit = async (newName: string) => {
         if (!activeProject) return;
-        
+
         setIsLoading(true);
         setLoadingMessage("Copying drawing...");
-        
+
         try {
-            await CopyGistMsg.send(activeProject, newName);
-            await queryClient.invalidateQueries({ queryKey: GIST_KEYS.LIST });
+            const copiedGist = await CopyGistMsg.send(activeProject, newName);
+            updateDrawingList(copiedGist);
             alert("Drawing copied successfully!");
         } catch (error) {
             console.error('Failed to copy drawing:', error);
@@ -131,7 +140,6 @@ export default function Sidebar() {
             alert(errorMessage);
         } finally {
             setIsLoading(false);
-            setLoadingMessage("");
         }
     };
 
@@ -144,7 +152,7 @@ export default function Sidebar() {
         {
             label: "New",
             icon: FiPlus,
-            onClick: handleNewDrawing,
+            onClick: handleOpenNewDrawingModal,
             disabled: false,
         },
         {

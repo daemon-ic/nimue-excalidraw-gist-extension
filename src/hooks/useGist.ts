@@ -25,7 +25,9 @@ async function makeRequest(endpoint: string, options: RequestInit = {}) {
     throw new Error(`GitHub API error: ${response.status} ${response.statusText} - ${error}`);
   }
 
-  return response.json();
+  const json = await response.json();
+  console.log('json', json)
+  return json;
 }
 
 // ===== GIST API FUNCTIONS =====
@@ -65,10 +67,7 @@ export function useCreateGist() {
   const { mutate: createGist, isPending: isCreatingGist, data: createdGist } = useMutation({
     mutationFn: createGistFn,
     onSuccess: (newGist) => {
-      // Invalidate the list cache to refresh the UI
-      queryClient.invalidateQueries({ queryKey: GIST_KEYS.LIST });
-      
-      // Optionally, you can also set the new gist in the cache immediately
+      // Only cache the detail - let the calling component handle list updates
       queryClient.setQueryData(GIST_KEYS.DETAIL(newGist.id), newGist);
     },
   });
@@ -85,7 +84,7 @@ export function useUpdateGist() {
   const { mutate: updateGist, isPending: isUpdatingGist, data: updatedGist } = useMutation({
       mutationFn: ({gistId, request}: {gistId: string, request: UpdateGistRequest}) => updateGistFn(gistId, request)  ,
       onSuccess: (updatedGist) => { 
-        queryClient.invalidateQueries({ queryKey: GIST_KEYS.LIST });
+        // Only cache the detail - let the calling component handle list updates
         queryClient.setQueryData(GIST_KEYS.DETAIL(updatedGist.id), updatedGist);
       },
     });
@@ -99,7 +98,7 @@ export function useUpdateGist() {
 export function useGetGists(githubToken: string, currentValidation: GithubValidation) {
   const { data: gists, isLoading: isGistsLoading, error:gistsError, refetch: refetchGists } = useQuery({
     queryKey: GIST_KEYS.LIST,
-    queryFn: () => getAllGists(1, 100),
+    queryFn: () => getAllGists(),
     enabled: !!githubToken && !!currentValidation?.isValid,
   });
 
