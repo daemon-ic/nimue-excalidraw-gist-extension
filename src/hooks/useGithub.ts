@@ -1,5 +1,5 @@
 import browser from "webextension-polyfill";
-import { GITHUB_API_BASE, GITHUB_KEYS, STORAGE_KEYS } from "@/services/config";
+import { GITHUB_API_BASE, GITHUB_KEYS, STORAGE_KEYS } from "@/shared/config";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export type GithubValidation = {
@@ -70,16 +70,14 @@ export function useGithubToken() {
     }
 }
 
-
-
 export function useSetGithubToken({onSuccess}: {onSuccess: () => void}) {
     const queryClient = useQueryClient();
     const { mutate: setGithubToken, isPending: isSettingGithubToken } = useMutation({
-    mutationFn: setGithubTokenFn,
-    onSuccess: (newToken) => {
-        queryClient.setQueryData(GITHUB_KEYS.TOKEN, newToken);
-        queryClient.invalidateQueries({ queryKey: GITHUB_KEYS.VALIDATION });
-        onSuccess();
+        mutationFn: setGithubTokenFn,
+        onSuccess: (newToken) => {
+            queryClient.setQueryData(GITHUB_KEYS.TOKEN, newToken);
+            queryClient.invalidateQueries({ queryKey: GITHUB_KEYS.VALIDATION });
+            onSuccess();
         },
     });
 
@@ -89,9 +87,6 @@ export function useSetGithubToken({onSuccess}: {onSuccess: () => void}) {
     }
 }
 
-
-
-
 export function useCurrentGithubValidation() {
     const { githubToken } = useGithubToken();
     const {
@@ -100,7 +95,7 @@ export function useCurrentGithubValidation() {
     } = useQuery({
         queryKey: GITHUB_KEYS.VALIDATION,
         queryFn: () => validateGithubTokenFn(githubToken),
-        enabled: !!githubToken, // Only run if we have a token
+        enabled: !!githubToken,
     });
     return {
         currentValidation: currentValidation || { isValid: false, user: null } as GithubValidation,
@@ -119,7 +114,6 @@ export function useValidateGithubToken() {
         mutationFn: (token: string) => validateGithubTokenFn(token),
         onSuccess: (result) => {
             queryClient.setQueryData(GITHUB_KEYS.VALIDATION, result);
-            queryClient.invalidateQueries({ queryKey: GITHUB_KEYS.VALIDATION });
         },
     });
     return {

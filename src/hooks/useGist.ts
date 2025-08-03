@@ -1,9 +1,7 @@
-import { ExcalidrawData } from '@/types/excalidraw';
-import browser from 'webextension-polyfill';
 import { Gist, UpdateGistRequest, CreateGistRequest } from '@/types/gist';
 import { getGithubTokenFn, GithubValidation } from './useGithub';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { GIST_KEYS, GITHUB_API_BASE } from '@/services/config';
+import { GIST_KEYS, GITHUB_API_BASE } from '@/shared/config';
 
 // ===== API FUNCTIONS =====
 
@@ -17,6 +15,7 @@ async function makeRequest(endpoint: string, options: RequestInit = {}) {
       'Content-Type': 'application/json',
       ...options.headers,
     },
+    cache: 'no-store', // Force fresh request
     ...options,
   });
 
@@ -32,26 +31,8 @@ async function makeRequest(endpoint: string, options: RequestInit = {}) {
 
 // ===== GIST API FUNCTIONS =====
 
-export async function getAllGists(page = 1, perPage = 30): Promise<Gist[]> {
-  return makeRequest(`/gists?page=${page}&per_page=${perPage}`);
-}
-
 export async function getGist(gistId: string): Promise<Gist> {
   return makeRequest(`/gists/${gistId}`);
-}
-
-export async function createGistFn(request: CreateGistRequest): Promise<Gist> {
-  return makeRequest('/gists', {
-    method: 'POST',
-    body: JSON.stringify(request),
-  });
-}
-
-export async function updateGistFn(gistId: string, request: UpdateGistRequest): Promise<Gist> {
-  return makeRequest(`/gists/${gistId}`, {
-    method: 'PATCH',
-    body: JSON.stringify(request),
-  });
 }
 
 export async function deleteGist(gistId: string): Promise<void> {
@@ -62,32 +43,43 @@ export async function deleteGist(gistId: string): Promise<void> {
 
 // ===== GIST HOOKS =====
 
+export async function createGistFn(request: CreateGistRequest): Promise<Gist> {
+  return makeRequest('/gists', {
+    method: 'POST',
+    body: JSON.stringify(request),
+  });
+}
+
 export function useCreateGist() {
   const queryClient = useQueryClient();
   const { mutate: createGist, isPending: isCreatingGist, data: createdGist } = useMutation({
     mutationFn: createGistFn,
     onSuccess: (newGist) => {
-      // Only cache the detail - let the calling component handle list updates
-      queryClient.setQueryData(GIST_KEYS.DETAIL(newGist.id), newGist);
+      queryClient.setQueryData(GIST_KEYS.LIST, (oldGists: Gist[]) => [...oldGists, newGist]);
     },
   });
-
   return {
     createGist,
     isCreatingGist,
-    createdGist, // This will contain the newly created gist
+    createdGist,
   };
 } 
+
+export async function updateGistFn(gistId: string, request: UpdateGistRequest): Promise<Gist> {
+  return makeRequest(`/gists/${gistId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(request),
+  });
+}
 
 export function useUpdateGist() {
   const queryClient = useQueryClient();
   const { mutate: updateGist, isPending: isUpdatingGist, data: updatedGist } = useMutation({
-      mutationFn: ({gistId, request}: {gistId: string, request: UpdateGistRequest}) => updateGistFn(gistId, request)  ,
-      onSuccess: (updatedGist) => { 
-        // Only cache the detail - let the calling component handle list updates
-        queryClient.setQueryData(GIST_KEYS.DETAIL(updatedGist.id), updatedGist);
-      },
-    });
+    mutationFn: ({gistId, request}: {gistId: string, request: UpdateGistRequest}) => updateGistFn(gistId, request),
+    onSuccess: (updatedGist) => { 
+      queryClient.setQueryData(GIST_KEYS.DETAIL(updatedGist.id), updatedGist);
+    },
+  });
   return {
     updateGist,
     isUpdatingGist,
@@ -95,8 +87,12 @@ export function useUpdateGist() {
   };
 } 
 
+export async function getAllGists(page = 1, perPage = 30): Promise<Gist[]> {
+  return makeRequest(`/gists?page=${page}&per_page=${perPage}`);
+}
+
 export function useGetGists(githubToken: string, currentValidation: GithubValidation) {
-  const { data: gists, isLoading: isGistsLoading, error:gistsError, refetch: refetchGists } = useQuery({
+  const { data: gists, isLoading: isGistsLoading, error: gistsError, refetch: refetchGists } = useQuery({
     queryKey: GIST_KEYS.LIST,
     queryFn: () => getAllGists(),
     enabled: !!githubToken && !!currentValidation?.isValid,
@@ -107,6 +103,20 @@ export function useGetGists(githubToken: string, currentValidation: GithubValida
     isGistsLoading,
     gistsError,
     refetchGists,
+  };
+}
+
+export function useGetGist(gistId: string) {
+  const { data: gist, isLoading, error } = useQuery({
+    queryKey: GIST_KEYS.DETAIL(gistId),
+    queryFn: () => getGist(gistId),
+    enabled: !!gistId,
+  });
+
+  return {
+    gist,
+    isLoading,
+    error,
   };
 }
 

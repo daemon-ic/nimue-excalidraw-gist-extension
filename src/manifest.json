@@ -29,7 +29,8 @@
   "content_scripts": [
     {
       "matches": ["https://excalidraw.com/*"],
-      "js": ["js/content.js"]
+      "js": ["js/content.js"],
+      "run_at": "document_idle"
     }
   ]
 } 

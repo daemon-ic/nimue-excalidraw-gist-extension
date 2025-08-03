@@ -1,13 +1,14 @@
 import { FiEdit3, FiPlus, FiSave, FiCopy, FiExternalLink } from "react-icons/fi";
 import { useActiveProject } from "@/hooks/useActiveProject";
-import { CreateGistMsg, CopyGistMsg, UpdateGistMsg } from "@/services/background";
-import { useQueryClient } from "@tanstack/react-query";
-import { GIST_KEYS } from "@/services/config";
+import { CreateGistContentMsg } from "@/services/content/messages";
+import { CopyGistMsg, UpdateGistMsg } from "@/services_old/background";
+import { GIST_FILENAME, GIST_KEYS } from "@/shared/config";
 import { useState } from "react";
 import NameDrawingModal from "./NameDrawingModal";
 import RenameDrawingModal from "./RenameDrawingModal";
 import LoadingOverlay from "./LoadingOverlay";
-import { Gist } from "@/types/gist";
+import { useCreateGist } from "@/hooks/useGist";
+import { useQueryClient } from "@tanstack/react-query";
 
 function SidebarButton({
     label,
@@ -35,43 +36,77 @@ function SidebarButton({
     )
 }
 
-export default function Sidebar() {
+interface SidebarProps {
+    onGistCreated?: () => void;
+}
+
+export default function Sidebar({ onGistCreated }: SidebarProps) {
     const { activeProject } = useActiveProject();
-    const queryClient = useQueryClient();
+    const { createGist, isCreatingGist } = useCreateGist();
+    
     const [showNewModal, setShowNewModal] = useState(false);
     const [showRenameModal, setShowRenameModal] = useState(false);
     const [showCopyModal, setShowCopyModal] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [loadingMessage, setLoadingMessage] = useState("");
 
+    const queryClient = useQueryClient();
+    
+    // Combine local loading state with React Query loading state
+    const isCreating = isLoading || isCreatingGist;
+
     const handleOpenNewDrawingModal = () => {
         setShowNewModal(true);
     };
-
-
-
-    function updateDrawingList(gist: Gist) {
-        queryClient.invalidateQueries({ queryKey: GIST_KEYS.LIST });
-        queryClient.invalidateQueries({ queryKey: GIST_KEYS.DETAIL(gist.id) });
-    }
-
-
-
-
 
     const handleCreateNewDrawing = async (name: string) => {
         setIsLoading(true);
         setLoadingMessage("Creating new drawing...");
 
         try {
-            const newGist = await CreateGistMsg.send(name);
-            updateDrawingList(newGist);
-            alert("New drawing created successfully!");
+            // Get the Excalidraw data from the page
+            const excalidrawData = await CreateGistContentMsg.send(name);
+            
+            // Create the gist using the React hook
+            createGist({
+                description: name || "Created from Excalidraw",
+                files: {
+                    [GIST_FILENAME]: {
+                        content: JSON.stringify(excalidrawData, null, 2),
+                    },
+                },
+                public: true,
+            }, {
+                onSuccess: (newGist) => {
+                    console.log('Gist created successfully:', newGist);
+                    
+                    // Close the modal
+                    setShowNewModal(false);
+                    
+                    // Show success message
+                    alert("New drawing created successfully!");
+                    
+                    // Clear loading state
+                    setIsLoading(false);
+                    setLoadingMessage("");
+
+                    // Cache invalidation is handled by the useCreateGist hook
+                },
+                onError: (error) => {
+                    console.error('Failed to create gist:', error);
+                    alert('Failed to create gist. Please try again.');
+                    
+                    // Clear loading state on error
+                    setIsLoading(false);
+                    setLoadingMessage("");
+                }
+            });
         } catch (error) {
-            console.error('Failed to create new drawing:', error);
-            const errorMessage = error instanceof Error ? error.message : 'Failed to create new drawing.';
+            console.error('Failed to get drawing data:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Failed to get drawing data.';
             alert(errorMessage);
-        } finally {
+            
+            // Clear loading state on error
             setIsLoading(false);
             setLoadingMessage("");
         }
@@ -83,7 +118,7 @@ export default function Sidebar() {
         setLoadingMessage("Saving drawing...");
         try {
             const updatedGist = await UpdateGistMsg.send(activeProject);
-            updateDrawingList(updatedGist);
+            onGistCreated?.();
             alert("Drawing saved successfully!");
         } catch (error) {
             console.error('Failed to save drawing:', error);
@@ -108,7 +143,7 @@ export default function Sidebar() {
 
         try {
             const renamedGist = await CopyGistMsg.send(activeProject, newName);
-            updateDrawingList(renamedGist);
+            onGistCreated?.();
             alert("Drawing copied successfully!");
         } catch (error) {
             console.error('Failed to rename drawing:', error);
@@ -132,7 +167,7 @@ export default function Sidebar() {
 
         try {
             const copiedGist = await CopyGistMsg.send(activeProject, newName);
-            updateDrawingList(copiedGist);
+            onGistCreated?.();
             alert("Drawing copied successfully!");
         } catch (error) {
             console.error('Failed to copy drawing:', error);
@@ -224,7 +259,7 @@ export default function Sidebar() {
             )}
 
             {/* Loading Overlay */}
-            <LoadingOverlay isVisible={isLoading} message={loadingMessage} />
+            <LoadingOverlay isVisible={isCreating} message={loadingMessage || "Creating gist..."} />
         </div>
     )
 }

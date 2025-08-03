@@ -20,3 +20,5 @@ export const GIST_KEYS = {
     LIST: ['gists', 'list'],
     DETAIL: (id: string) => ['gists', 'detail', id],
   };
+
+export const GIST_FILENAME = 'drawing.excalidraw'

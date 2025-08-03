@@ -3,76 +3,39 @@ import Header from '@/components/Header'
 import ConnectModal from '@/components/ConnectModal'
 import Gallery from '@/components/Gallery'
 import Sidebar from '@/components/Sidebar'
-import { CHROME_KEYS } from '@/services/config'
+import { CHROME_KEYS } from '@/shared/config'
 import { useGithubToken, useCurrentGithubValidation } from '@/hooks/useGithub'
 import { useQuery } from '@tanstack/react-query'
-import { ConnectionStatus } from '@/types/common'
-import { Gist } from '@/types/gist'
-import { getCurrentTab } from '@/services/chrome'
+import { getCurrentTab } from '@/services_old/chrome'
 import { useGetGists } from '@/hooks/useGist'
 
-
-type AuthStatus = {
-  status: ConnectionStatus
-  gists: Gist[]
-  isGistsLoading: boolean
-  gistsError: Error | null
-}
-
 export const Popup: React.FC = () => {
-
-
-  const { data: currentTab, isLoading: tabLoading, error: tabError } = useQuery({
+  const { isLoading: tabLoading, error: tabError } = useQuery({
     queryKey: CHROME_KEYS.CURRENT_TAB,
     queryFn: getCurrentTab,
   })
 
   const { githubToken, isGettingGithubToken } = useGithubToken();
   const { currentValidation, isLoadingCurrentValidation } = useCurrentGithubValidation();
-  const { gists, isGistsLoading, gistsError, refetchGists } = useGetGists(
+  const { gists, isGistsLoading, refetchGists } = useGetGists(
     githubToken,
     currentValidation,
   );
 
-  const authStatus = useMemo((): AuthStatus => {
-    if (isGettingGithubToken || isLoadingCurrentValidation || isGistsLoading) {
-      return {
-        status: 'loading',
-        gists: [],
-        isGistsLoading: true,
-        gistsError: null
-      };
-    }
+  console.log("[Popup] gists", gists)
 
+  const connectionStatus = useMemo(() => {
+    if (isGettingGithubToken || isLoadingCurrentValidation) {
+      return 'loading';
+    }
     if (!githubToken || !currentValidation?.isValid) {
-      return {
-        status: 'disconnected',
-        gists: [],
-        isGistsLoading: false,
-        gistsError: null
-      };
+      return 'disconnected';
     }
+    return 'connected';
+  }, [isGettingGithubToken, isLoadingCurrentValidation]);
 
-    return {
-      status: 'connected',
-      gists: gists || [],
-      isGistsLoading: isGistsLoading,
-      gistsError: gistsError || null
-    };
-  }, [
-    githubToken,
-    currentValidation,
-    gists,
-    isGettingGithubToken,
-    isLoadingCurrentValidation,
-    isGistsLoading,
-    gistsError
-  ]);
 
-  const { status, gists: authGists, isGistsLoading: authGistsLoading } = authStatus;
-  console.log("getting gists after auth status", authGists)
-
-  const isLoading = tabLoading || status === 'loading' || authGistsLoading || isGistsLoading
+  const isLoading = tabLoading || isGistsLoading
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   const handleCloseModal = useCallback(() => {
@@ -84,8 +47,9 @@ export const Popup: React.FC = () => {
   }, []);
 
   const handleRefresh = useCallback(() => {
+    // Force fresh data by invalidating and refetching
     refetchGists();
-  }, []);
+  }, [refetchGists]);
 
   if (isLoading) {
     return (
@@ -116,13 +80,13 @@ export const Popup: React.FC = () => {
   return (
     <div className="extension-popup h-screen flex flex-col relative">
       {isModalOpen && <ConnectModal onClose={handleCloseModal} />}
-      <Header status={status} onConnect={handleConnect} onRefresh={handleRefresh} />
+      <Header status={connectionStatus} onConnect={handleConnect} onRefresh={handleRefresh} />
 
-      {status === 'connected' && authGists ? (
+      {gists ? (
         <div className="flex-1 flex overflow-hidden">
-          <Sidebar />
+          <Sidebar onGistCreated={refetchGists} />
           <div className="flex-1 overflow-y-auto p-4">
-            <Gallery gists={authGists} />
+            <Gallery gists={gists} />
           </div>
         </div>
       ) : (

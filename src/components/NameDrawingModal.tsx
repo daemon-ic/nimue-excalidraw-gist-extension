@@ -5,7 +5,7 @@ import { useState } from "react";
 
 interface NameDrawingModalProps {
     onClose: () => void;
-    onSubmit: (name: string) => void;
+    onSubmit: (name: string) => Promise<void>;
     title: string;
     placeholder?: string;
     initialValue?: string;
@@ -19,13 +19,20 @@ export default function NameDrawingModal({
     initialValue = ""
 }: NameDrawingModalProps) {
     const [name, setName] = useState(initialValue);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    function handleSubmit() {
+    async function handleSubmit() {
         if (!name.trim()) {
             return;
         }
-        onSubmit(name.trim());
-        onClose();
+        setIsSubmitting(true);
+        try {
+            await onSubmit(name.trim());
+        } catch (error) {
+            console.error('Error submitting:', error);
+        } finally {
+            setIsSubmitting(false);
+        }
     }
 
     function handleKeyPress(e: React.KeyboardEvent) {
@@ -48,12 +55,13 @@ export default function NameDrawingModal({
                     />
                 <div className="flex gap-3">
                     <Button
-                        onClick={!name.trim() ? () => {} : handleSubmit}
-                        className={!name.trim() ? "opacity-50 cursor-not-allowed" : ""}
+                        onClick={!name.trim() || isSubmitting ? () => {} : handleSubmit}
+                        className={!name.trim() || isSubmitting ? "opacity-50 cursor-not-allowed" : ""}
+                        disabled={isSubmitting}
                     >
-                        Create
+                        {isSubmitting ? "Creating..." : "Create"}
                     </Button>
-                    <Button onClick={onClose} variant="secondary">
+                    <Button onClick={onClose} variant="secondary" disabled={isSubmitting}>
                         Cancel
                     </Button>
                 </div>

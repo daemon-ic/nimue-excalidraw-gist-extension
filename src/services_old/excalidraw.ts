@@ -75,7 +75,11 @@ export async function getCurrentDrawingDataFromLocalStorage() {
           headers: {
             'Authorization': `token ${token}`,
             'Accept': 'application/vnd.github.v3+json',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0',
           },
+          cache: 'no-store', // Force fresh request
         });
         
         if (!response.ok) {

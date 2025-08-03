@@ -1,8 +1,7 @@
 import browser from "webextension-polyfill";
 import { Gist } from "@/types/gist";
 import { createGistFn, updateGistFn } from "@/hooks/useGist";
-import { getCurrentDrawingDataFromLocalStorage } from "@/services/excalidraw";
-// import { createExcalidrawGist, saveCurrentDrawingToGist } from "./excalidraw";
+import { getCurrentDrawingDataFromLocalStorage } from "./excalidraw";
 
 // ===== TYPE DEFINITIONS =====
 
@@ -114,43 +113,7 @@ export class UpdateGistMsg {
     }
 }
 
-export class CreateGistMsg {
-    static readonly action = "create_gist";
-    
-    static async send(name: string): Promise<Gist> {
-        const response = await sendBackgroundMessage<GistResponse>(this.action, { name });
-        return response.gist!;
-    }
-    
-    static async backgroundHandler(message: BaseMessage): Promise<GistResponse> {
-        try {
-            // cant use react query in background scripts
-            const excalidrawData = await getCurrentDrawingDataFromLocalStorage();
-            const newGist = await createGistFn({
-                description: message.payload.name || 'Excalidraw drawing',
-                public: false,
-                files: {
-                    'drawing.excalidraw': {
-                        content: JSON.stringify(excalidrawData, null, 2)
-                    }
-                }
-            });
 
-            console.log('newGist', newGist)
-           
-
-
-            
-            return { success: true, gist: newGist };
-        } catch (error) {
-            console.error("[Background] Failed to create gist:", error);
-            return { 
-                success: false, 
-                error: error instanceof Error ? error.message : 'Unknown error' 
-            };
-        }
-    }
-}
 
 export class CopyGistMsg {
     static readonly action = "copy_gist";
@@ -180,9 +143,7 @@ export class CopyGistMsg {
 // ===== MESSAGE REGISTRY =====
 
 export const MESSAGE_HANDLERS = {
-    // [SaveDrawingMsg.action]: SaveDrawingMsg,
     [UpdateGistMsg.action]: UpdateGistMsg,
-    [CreateGistMsg.action]: CreateGistMsg,
     [CopyGistMsg.action]: CopyGistMsg,
 } as const;
 
