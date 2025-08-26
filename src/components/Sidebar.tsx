@@ -1,14 +1,12 @@
 import { FiEdit3, FiPlus, FiSave, FiCopy, FiExternalLink } from "react-icons/fi";
 import { useActiveProject } from "@/hooks/useActiveProject";
-import { CreateGistContentMsg } from "@/services/content/messages";
-import { CopyGistMsg, UpdateGistMsg } from "@/services_old/background";
-import { GIST_FILENAME, GIST_KEYS } from "@/shared/config";
+import { getExcalidrawDataFromPage } from "@/services/extension/extract";
+import { GIST_FILENAME } from "@/shared/config";
 import { useState } from "react";
 import NameDrawingModal from "./NameDrawingModal";
 import RenameDrawingModal from "./RenameDrawingModal";
 import LoadingOverlay from "./LoadingOverlay";
-import { useCreateGist } from "@/hooks/useGist";
-import { useQueryClient } from "@tanstack/react-query";
+import { useCreateGist, useUpdateGist } from "@/hooks/useGist";
 
 function SidebarButton({
     label,
@@ -43,16 +41,13 @@ interface SidebarProps {
 export default function Sidebar({ onGistCreated }: SidebarProps) {
     const { activeProject } = useActiveProject();
     const { createGist, isCreatingGist } = useCreateGist();
-    
+    const { updateGist, isUpdatingGist } = useUpdateGist();
     const [showNewModal, setShowNewModal] = useState(false);
     const [showRenameModal, setShowRenameModal] = useState(false);
     const [showCopyModal, setShowCopyModal] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [loadingMessage, setLoadingMessage] = useState("");
 
-    const queryClient = useQueryClient();
-    
-    // Combine local loading state with React Query loading state
     const isCreating = isLoading || isCreatingGist;
 
     const handleOpenNewDrawingModal = () => {
@@ -64,39 +59,32 @@ export default function Sidebar({ onGistCreated }: SidebarProps) {
         setLoadingMessage("Creating new drawing...");
 
         try {
-            // Get the Excalidraw data from the page
-            const excalidrawData = await CreateGistContentMsg.send(name);
-            
-            // Create the gist using the React hook
             createGist({
                 description: name || "Created from Excalidraw",
                 files: {
                     [GIST_FILENAME]: {
-                        content: JSON.stringify(excalidrawData, null, 2),
+                        content: JSON.stringify({
+                            type: "excalidraw",
+                            version: 2,
+                            source: "https://excalidraw.com",
+                            elements: [],
+                            appState: {},
+                            files: {},
+                        }, null, 2),
                     },
                 },
                 public: true,
             }, {
                 onSuccess: (newGist) => {
                     console.log('Gist created successfully:', newGist);
-                    
-                    // Close the modal
                     setShowNewModal(false);
-                    
-                    // Show success message
                     alert("New drawing created successfully!");
-                    
-                    // Clear loading state
                     setIsLoading(false);
                     setLoadingMessage("");
-
-                    // Cache invalidation is handled by the useCreateGist hook
                 },
                 onError: (error) => {
                     console.error('Failed to create gist:', error);
                     alert('Failed to create gist. Please try again.');
-                    
-                    // Clear loading state on error
                     setIsLoading(false);
                     setLoadingMessage("");
                 }
@@ -105,8 +93,6 @@ export default function Sidebar({ onGistCreated }: SidebarProps) {
             console.error('Failed to get drawing data:', error);
             const errorMessage = error instanceof Error ? error.message : 'Failed to get drawing data.';
             alert(errorMessage);
-            
-            // Clear loading state on error
             setIsLoading(false);
             setLoadingMessage("");
         }
@@ -117,13 +103,23 @@ export default function Sidebar({ onGistCreated }: SidebarProps) {
         setIsLoading(true);
         setLoadingMessage("Saving drawing...");
         try {
-            const updatedGist = await UpdateGistMsg.send(activeProject);
-            onGistCreated?.();
-            alert("Drawing saved successfully!");
+            const excalidrawData = await getExcalidrawDataFromPage();
+            updateGist({
+                gistId: activeProject.id,
+                request: {
+                    files: {
+                        [GIST_FILENAME]: {
+                            content: JSON.stringify(excalidrawData, null, 2),
+                        },
+                    },
+                },
+            }, {
+                onSuccess: () => {
+                    onGistCreated?.();
+                    alert("Drawing saved successfully!");
+                }
+            });
         } catch (error) {
-            console.error('Failed to save drawing:', error);
-            const errorMessage = error instanceof Error ? error.message : 'Failed to save drawing. Make sure you are on an Excalidraw page.';
-            alert(errorMessage);
         } finally {
             setIsLoading(false);
             setLoadingMessage("");
@@ -141,10 +137,35 @@ export default function Sidebar({ onGistCreated }: SidebarProps) {
         setIsLoading(true);
         setLoadingMessage("Renaming drawing...");
 
+        if (newName === activeProject.description) {
+            alert("Drawing name is already the same.");
+            setIsLoading(false);
+            setLoadingMessage("");
+            return;
+        }
+
+        if (!newName) {
+            alert("Drawing name cannot be empty.");
+            setIsLoading(false);
+            setLoadingMessage("");
+            return;
+        }
+
         try {
-            const renamedGist = await CopyGistMsg.send(activeProject, newName);
+            const excalidrawData = await getExcalidrawDataFromPage();
+            await updateGist({
+                gistId: activeProject.id,
+                request: {
+                    description: newName,
+                    files: {
+                        [GIST_FILENAME]: {
+                            content: JSON.stringify(excalidrawData, null, 2),
+                        },
+                    },
+                },
+            });
             onGistCreated?.();
-            alert("Drawing copied successfully!");
+            alert("Drawing renamed successfully!");
         } catch (error) {
             console.error('Failed to rename drawing:', error);
             alert('Failed to rename drawing.');
@@ -166,7 +187,16 @@ export default function Sidebar({ onGistCreated }: SidebarProps) {
         setLoadingMessage("Copying drawing...");
 
         try {
-            const copiedGist = await CopyGistMsg.send(activeProject, newName);
+            const excalidrawData = await getExcalidrawDataFromPage();
+            const copiedGist = await createGist({
+                description: newName || "Created from Excalidraw",
+                files: {
+                    [GIST_FILENAME]: {
+                        content: JSON.stringify(excalidrawData, null, 2),
+                    },
+                },
+                public: true,
+            });
             onGistCreated?.();
             alert("Drawing copied successfully!");
         } catch (error) {

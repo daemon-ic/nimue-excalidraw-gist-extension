@@ -1,16 +1,8 @@
 import { ExcalidrawData } from "@/types/excalidraw";
 
-// ===== UTILITY FUNCTIONS =====
 
-// The "Could not establish connection. Receiving end does not exist" error occurs when:
-// 1. The content script is not loaded yet
-// 2. The content script is not running on the current page
-// 3. There's a timing issue between when the message is sent and when the content script is ready
-//
-// Reliable approach using chrome.scripting.executeScript
-// This bypasses content script loading issues by directly executing code in the page context
-async function executeContentScript(action: string, payload: any): Promise<ExcalidrawData> {
-    console.log('executeContentScript', action, payload)
+export async function getExcalidrawDataFromPage(): Promise<ExcalidrawData> {
+    console.log('getExcalidrawDataFromPage')
 
     return new Promise((resolve, reject) => {
         chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
@@ -31,7 +23,7 @@ async function executeContentScript(action: string, payload: any): Promise<Excal
             try {
                 const results = await chrome.scripting.executeScript({
                     target: { tabId },
-                    func: (actionData, payloadData) => {
+                    func: () => {
                         // This function runs in the context of the web page
                         try {
                             const elements = localStorage.getItem('excalidraw');
@@ -59,7 +51,6 @@ async function executeContentScript(action: string, payload: any): Promise<Excal
                             throw new Error(`[Content] Error parsing localStorage data: ${errorMessage}`);
                         }
                     },
-                    args: [action, payload]
                 });
 
                 if (results && results[0] && results[0].result) {
@@ -90,25 +81,6 @@ async function executeContentScript(action: string, payload: any): Promise<Excal
             }
         });
     });
-}
-
-
-
-
-
-
-export class CreateGistContentMsg {
-    static readonly action = "create_gist";
-
-    static async send(name: string): Promise<ExcalidrawData> {
-        console.log('1 send', name)
-        
-        const response = await executeContentScript(this.action, { name });
-        console.log('2 response from executeContentScript', response);
-        return response;
-    }
-
-
 }
 
 

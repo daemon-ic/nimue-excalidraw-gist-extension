@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import browser from 'webextension-polyfill';
 import { Gist } from '@/types/gist';
-import { STORAGE_KEYS, CACHE_CONFIG } from '@/shared/config';
+import { STORAGE_KEYS } from '@/shared/config';
 
 // Storage functions
 async function getActiveProjectFn(): Promise<Gist | null> {
@@ -20,8 +20,6 @@ export function useActiveProject() {
     const { data: activeProject, isLoading } = useQuery({
         queryKey: ['active-project'],
         queryFn: getActiveProjectFn,
-        staleTime: CACHE_CONFIG.STALE_TIME.ACTIVE_PROJECT,
-        gcTime: CACHE_CONFIG.CACHE_TIME.ACTIVE_PROJECT,
     });
 
     const { mutate: setActiveProject, isPending: isSettingProject } = useMutation({
