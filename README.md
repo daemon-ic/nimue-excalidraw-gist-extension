@@ -1,288 +1,299 @@
-# Chrome Extension with Vite, Tailwind CSS, and TypeScript
+# Nimue - Excalidraw Companion
 
-A modern Chrome extension development setup using Vite, Tailwind CSS, and TypeScript for optimal developer experience.
+A Chrome extension that seamlessly manages your Excalidraw drawings by syncing them with GitHub Gists, enabling version control and cross-device access to your diagrams.
 
 ## Features
 
-- ⚡ **Vite** - Fast build tool and dev server
-- 🎨 **Tailwind CSS** - Utility-first CSS framework
-- 🔷 **TypeScript** - Type-safe JavaScript
-- ⚛️ **React** - Modern UI library
-- 📦 **WebExtension Polyfill** - Cross-browser compatibility
-- 🔧 **Hot Module Replacement** - Instant development feedback
-- 🚀 **pnpm** - Fast, disk space efficient package manager
+- **GitHub Integration** – Connect your GitHub account to store drawings as Gists
+- **Drawing Gallery** – Browse all your Excalidraw drawings in a visual gallery view
+- **One-Click Loading** – Load any saved drawing into Excalidraw with a single click
+- **Auto-Save** – Save your current drawing to GitHub at any time
+- **Drawing Management**:
+  - Create new empty drawings
+  - Rename existing drawings
+  - Duplicate/copy drawings
+  - View drawings on GitHub
+- **Real-time Sync** – Works directly with Excalidraw's localStorage to ensure drawings are properly loaded and saved
+- **Excalidraw.com Only** – Specifically designed to work on https://excalidraw.com
 
-## Prerequisites
+## Demo
 
-Make sure you have pnpm installed:
+![Extension popup showing drawing gallery](docs/screenshot-popup.png)
+![Connect to GitHub modal](docs/screenshot-connect.png)
+
+## Installation
+
+### Option 1: Install from Chrome Web Store
+
+_Coming soon_ – The extension will be available on the Chrome Web Store.
+
+### Option 2: Install from Source (Developer Mode)
+
+1. **Clone this repository**:
+   ```bash
+   git clone https://github.com/yourusername/nimue.git
+   cd nimue/vite
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   pnpm install
+   # or
+   npm install
+   # or
+   yarn install
+   ```
+
+3. **Build the extension**:
+   ```bash
+   pnpm run build
+   # or
+   npm run build
+   ```
+   
+   This compiles TypeScript and bundles the extension into the `dist/` directory.
+
+4. **Load into Chrome**:
+   - Open `chrome://extensions` in your browser
+   - Enable **Developer Mode** (toggle in top-right corner)
+   - Click **Load unpacked**
+   - Select the `dist/` directory from this project
+
+### Development Mode
+
+For active development with hot-reloading:
 
 ```bash
-npm install -g pnpm
+pnpm run dev:extension
+# or
+npm run dev:extension
 ```
 
-## Project Structure
+This watches for file changes and automatically rebuilds the extension. You'll need to manually reload the extension in `chrome://extensions` after changes.
+
+## Usage
+
+### First-Time Setup
+
+1. **Install the extension** (see Installation section above)
+
+2. **Navigate to Excalidraw**:
+   - Open https://excalidraw.com in Chrome
+
+3. **Open the extension**:
+   - Click the Nimue icon in your Chrome toolbar
+   - If you don't see it, click the puzzle icon and pin Nimue
+
+4. **Connect to GitHub**:
+   - Click "Connect" in the extension popup
+   - Enter your GitHub Personal Access Token
+   - To create a token:
+     - Go to https://github.com/settings/tokens
+     - Click "Generate new token (classic)"
+     - Give it a name (e.g., "Nimue Extension")
+     - Select the `gist` scope (required to create and manage gists)
+     - Click "Generate token"
+     - Copy and paste the token into Nimue
+
+### Working with Drawings
+
+#### Create a New Drawing
+1. Open the Nimue extension while on excalidraw.com
+2. Click the **+** (Plus) button in the sidebar
+3. Enter a name for your drawing
+4. A new empty drawing will be created as a GitHub Gist
+
+#### Save Your Current Drawing
+1. Make changes to your drawing in Excalidraw
+2. Open the Nimue extension
+3. Select the drawing you want to update (it will be highlighted)
+4. Click the **Save** button in the sidebar
+5. Your changes will be pushed to GitHub
+
+#### Load an Existing Drawing
+1. Open the Nimue extension
+2. Browse your drawings in the gallery
+3. Click on any drawing thumbnail
+4. The page will reload with your selected drawing
+
+#### Rename a Drawing
+1. Select a drawing from the gallery
+2. Click the **Rename** button (pencil icon)
+3. Enter the new name
+4. The drawing will be updated on GitHub
+
+#### Copy/Duplicate a Drawing
+1. Select a drawing from the gallery
+2. Click the **Copy** button
+3. Enter a name for the copy
+4. A new Gist will be created with the current drawing content
+
+#### View on GitHub
+1. Select a drawing from the gallery
+2. Click the **View on GitHub** button (external link icon)
+3. The Gist will open in a new tab
+
+## Configuration
+
+### GitHub Token
+
+The extension stores your GitHub Personal Access Token in Chrome's local storage. The token is:
+- Stored securely in the browser's extension storage
+- Never transmitted anywhere except to GitHub's official API (api.github.com)
+- Required to have the `gist` scope
+
+To update or change your token:
+1. Disconnect from the current account (if connected)
+2. Click "Connect" and enter a new token
+
+### Storage Location
+
+All drawings are stored as GitHub Gists with:
+- Filename: `drawing.excalidraw`
+- Public visibility (configurable in code)
+- Full Excalidraw JSON format including elements, appState, and files
+
+## Permissions
+
+The extension requests the following Chrome permissions:
+
+- **`activeTab`** – To detect when you're on excalidraw.com
+- **`tabs`** – To query the current active tab
+- **`storage`** – To securely store your GitHub token locally
+- **`scripting`** – To inject scripts that read/write Excalidraw's localStorage
+- **`host_permissions: excalidraw.com`** – To interact specifically with Excalidraw
+
+All permissions are used exclusively for the extension's core functionality and no data is collected or sent to third parties.
+
+## Development
+
+### Project Structure
 
 ```
 vite/
 ├── src/
-│   ├── components/
-│   │   ├── Popup.tsx          # Main popup component
-│   │   └── Options.tsx        # Options page component
-│   ├── styles/
-│   │   └── index.css          # Tailwind CSS and custom styles
-│   ├── background.ts          # Service worker
-│   ├── content.ts             # Content script
-│   ├── popup.html             # Popup entry point
-│   ├── popup.tsx              # Popup React entry
-│   ├── options.html           # Options page entry
-│   ├── options.tsx            # Options React entry
-│   └── manifest.json          # Extension manifest
-├── dist/                      # Built extension (generated)
-├── package.json
-├── vite.config.ts
-├── tsconfig.json
-├── tailwind.config.js
-└── postcss.config.js
+│   ├── components/          # React UI components
+│   │   ├── Gallery.tsx      # Drawing gallery view
+│   │   ├── Sidebar.tsx      # Action buttons sidebar
+│   │   ├── Header.tsx       # Extension header
+│   │   └── ...
+│   ├── hooks/               # React hooks
+│   │   ├── useGist.ts       # GitHub Gist API hooks
+│   │   ├── useGithub.ts     # GitHub auth hooks
+│   │   └── useStorage.ts    # Chrome storage hooks
+│   ├── services/
+│   │   ├── background/      # Background script utilities
+│   │   └── extension/       # Extension-specific services
+│   │       ├── extract.ts   # Extract Excalidraw data
+│   │       └── chrome.ts    # Chrome API wrappers
+│   ├── pages/
+│   │   └── Popup.tsx        # Main popup page
+│   ├── types/               # TypeScript type definitions
+│   ├── styles/              # CSS and Tailwind styles
+│   ├── manifest.json        # Chrome extension manifest
+│   ├── popup.html           # Popup HTML entry
+│   └── background.ts        # Background service worker
+├── build-extension.js       # Build script
+├── watch-extension.js       # Development watch script
+├── vite.config.ts           # Vite configuration
+└── package.json
 ```
 
-## Getting Started
-
-### 1. Install Dependencies
+### Available Scripts
 
 ```bash
-cd vite
-pnpm install
-```
+# Development mode with hot reload
+pnpm run dev:extension
 
-### 2. Development
-
-```bash
-# Start development server (for popup/options pages)
-pnpm dev
-
-# Build for production
-pnpm build
+# Production build
+pnpm run build
 
 # Type checking
-pnpm type-check
+pnpm run type-check
 
 # Clean build artifacts and dependencies
-pnpm clean
+pnpm run clean
 ```
 
-### 3. Load Extension in Chrome
+### Tech Stack
 
-1. Open Chrome and go to `chrome://extensions/`
-2. Enable "Developer mode" (toggle in top right)
-3. Click "Load unpacked"
-4. Select the `dist` folder from this project
-5. The extension should now appear in your extensions list
+- **React 18** – UI framework
+- **TypeScript** – Type safety
+- **Vite** – Fast build tool and dev server
+- **Tailwind CSS** – Utility-first styling
+- **React Query (TanStack Query)** – Server state management
+- **webextension-polyfill** – Cross-browser compatibility
+- **React Icons** – Icon library
 
-## Development Workflow
+### Adding New Features
 
-### Building
+1. **Create a new component** in `src/components/`
+2. **Add types** in `src/types/` if needed
+3. **Create hooks** for data fetching in `src/hooks/`
+4. **Use React Query** for API calls to maintain cache consistency
+5. **Test locally** using `pnpm run dev:extension`
 
-The build process creates a `dist` folder with the following structure:
+## Testing
 
-```
-dist/
-├── js/
-│   ├── popup.js
-│   ├── options.js
-│   ├── background.js
-│   └── content.js
-├── css/
-│   └── popup.css
-├── assets/
-│   └── (icons and other assets)
-├── popup.html
-├── options.html
-└── manifest.json
-```
+The extension should be tested on:
+- Chrome (primary target)
+- Chromium-based browsers (Edge, Brave, etc.)
 
-### Development vs Production
+Manual testing workflow:
+1. Load the extension in developer mode
+2. Navigate to https://excalidraw.com
+3. Create/modify a drawing in Excalidraw
+4. Open the extension popup
+5. Test each feature (save, load, create, rename, copy)
+6. Verify data persists on GitHub Gists
+7. Test loading drawings in a new browser/device
 
-- **Development**: Use `pnpm dev` for hot reloading of popup/options pages
-- **Production**: Use `pnpm build` to create optimized files for the extension
+## Roadmap
 
-### File Changes
+### Current Limitations
+- Only works on excalidraw.com (not self-hosted instances)
+- Requires manual token entry (no OAuth flow)
+- No offline mode
+- Public gists only (private can be enabled in code)
 
-After making changes to:
-- **React components**: Rebuild with `pnpm build`
-- **Background/content scripts**: Rebuild and reload extension
-- **Manifest**: Rebuild and reload extension
-
-## Package Management with pnpm
-
-### Adding Dependencies
-
-```bash
-# Add production dependency
-pnpm add <package-name>
-
-# Add development dependency
-pnpm add -D <package-name>
-
-# Add specific version
-pnpm add <package-name>@<version>
-```
-
-### Managing Dependencies
-
-```bash
-# Install all dependencies
-pnpm install
-
-# Update dependencies
-pnpm update
-
-# Remove dependency
-pnpm remove <package-name>
-
-# Clean install (remove node_modules and reinstall)
-pnpm clean && pnpm install
-```
-
-### pnpm Benefits
-
-- **Faster**: Parallel installation and efficient caching
-- **Disk space efficient**: Shared dependencies across projects
-- **Strict**: Prevents phantom dependencies
-- **Monorepo friendly**: Built-in workspace support
-
-## Extension Features
-
-### Popup
-- Counter with persistent storage
-- Current tab URL display
-- Modern UI with Tailwind CSS
-
-### Options Page
-- Extension settings management
-- Toggle switches for features
-- Theme selection
-
-### Background Script
-- Service worker for extension logic
-- Message handling between components
-- Tab event listeners
-
-### Content Script
-- Runs on web pages
-- Floating action button
-- Page interaction capabilities
-
-## Configuration
-
-### Vite Config (`vite.config.ts`)
-- Multiple entry points for different extension parts
-- Optimized build output structure
-- React plugin integration
-
-### TypeScript Config (`tsconfig.json`)
-- Strict type checking
-- Chrome extension types
-- Path aliases for clean imports
-
-### Tailwind Config (`tailwind.config.js`)
-- Custom color palette
-- Extension-specific utilities
-- Content paths for purging
-
-## API Usage
-
-### Storage
-```typescript
-// Local storage (persists per device)
-await browser.storage.local.set({ key: 'value' })
-const result = await browser.storage.local.get(['key'])
-
-// Sync storage (syncs across devices)
-await browser.storage.sync.set({ key: 'value' })
-const result = await browser.storage.sync.get(['key'])
-```
-
-### Messaging
-```typescript
-// Send message to background script
-const response = await browser.runtime.sendMessage({
-  action: 'getData',
-  data: 'some data'
-})
-
-// Listen for messages
-browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  // Handle message
-  sendResponse({ success: true })
-})
-```
-
-### Tabs
-```typescript
-// Get current tab
-const tabs = await browser.tabs.query({ active: true, currentWindow: true })
-const currentTab = tabs[0]
-
-// Execute script in tab
-await browser.scripting.executeScript({
-  target: { tabId: currentTab.id },
-  func: () => console.log('Hello from content script!')
-})
-```
-
-## Customization
-
-### Adding New Components
-1. Create component in `src/components/`
-2. Import and use in popup/options
-3. Add any new styles to `src/styles/index.css`
-
-### Adding New Permissions
-1. Update `src/manifest.json` permissions array
-2. Add corresponding API usage in background/content scripts
-
-### Styling
-- Use Tailwind utility classes for styling
-- Add custom CSS in `src/styles/index.css`
-- Use `@apply` directive for component styles
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Extension not loading**: Check manifest.json syntax and file paths
-2. **TypeScript errors**: Run `pnpm type-check` to identify issues
-3. **Build errors**: Ensure all dependencies are installed with `pnpm install`
-4. **Hot reload not working**: Popup/options pages need manual refresh
-5. **pnpm not found**: Install pnpm globally with `npm install -g pnpm`
-
-### Debugging
-
-1. **Background script**: Check `chrome://extensions/` > "service worker" link
-2. **Content script**: Use browser dev tools on web pages
-3. **Popup**: Right-click extension icon > "Inspect popup"
-
-### pnpm Specific Issues
-
-1. **Peer dependency warnings**: These are normal with pnpm's strict mode
-2. **Missing dependencies**: Use `pnpm add` to install missing packages
-3. **Lock file conflicts**: Delete `pnpm-lock.yaml` and run `pnpm install`
-
-## Production Deployment
-
-1. Build the extension: `pnpm build`
-2. Test thoroughly in Chrome
-3. Package for Chrome Web Store (if applicable)
-4. Update version in `package.json` and `manifest.json`
+### Future Improvements
+- [ ] OAuth GitHub authentication
+- [ ] Private Gist support toggle
+- [ ] Offline draft mode with sync
+- [ ] Search and filter drawings
+- [ ] Export drawings to other formats
+- [ ] Collaboration features
+- [ ] Support for self-hosted Excalidraw instances
+- [ ] Automatic backup before loading a drawing
+- [ ] Drawing preview thumbnails
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+Contributions are welcome! Please follow these guidelines:
+
+1. **Open an issue** first to discuss major changes
+2. **Fork the repository** and create a feature branch
+3. **Follow the existing code style**:
+   - Use TypeScript for all new code
+   - Follow React hooks best practices
+   - Use Tailwind CSS for styling
+4. **Test your changes** thoroughly
+5. **Run type checking** before submitting: `pnpm run type-check`
+6. **Submit a Pull Request** with a clear description of changes
+
+### PR Checklist
+- [ ] Code compiles without errors
+- [ ] No TypeScript errors
+- [ ] Tested in Chrome browser
+- [ ] Extension loads and functions properly
+- [ ] No console errors
+- [ ] Updated documentation if needed
 
 ## License
 
-MIT License - feel free to use this setup for your own projects! # nimue-excalidraw-gist-extension
+License: MIT
+
+---
+
+**Note**: This extension is not officially affiliated with Excalidraw or GitHub. It's an independent tool created to enhance the Excalidraw workflow.
+
