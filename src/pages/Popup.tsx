@@ -6,7 +6,7 @@ import Sidebar from '@/components/Sidebar'
 import { CHROME_KEYS } from '@/shared/config'
 import { useGithubToken, useCurrentGithubValidation } from '@/hooks/useGithub'
 import { useQuery } from '@tanstack/react-query'
-import { getCurrentTab } from '@/services_old/chrome'
+import { getCurrentTab } from '@/services/extension/chrome'
 import { useGetGists } from '@/hooks/useGist'
 
 export const Popup: React.FC = () => {
