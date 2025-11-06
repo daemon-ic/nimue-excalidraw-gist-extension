@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { resolve } from 'path'
 import { copyFileSync } from 'fs'
+import { viteStaticCopy } from 'vite-plugin-static-copy'
 
 export default defineConfig({
   plugins: [
@@ -15,7 +16,15 @@ export default defineConfig({
           resolve(__dirname, 'dist/manifest.json')
         )
       }
-    }
+    },
+    viteStaticCopy({
+      targets: [
+        {
+          src: 'src/assets/*.png',
+          dest: 'assets',
+        },
+      ],
+    }),
   ],
   build: {
     rollupOptions: {

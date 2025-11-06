@@ -1,14 +1,15 @@
 {
   "manifest_version": 3,
-  "name": "Chrome Extension with Vite",
+  "name": "Nimue - Excalidraw Companion",
+  "icons": {
+    "16": "assets/icon-16.png",
+    "32": "assets/icon-32.png",
+    "48": "assets/icon-48.png",
+    "128": "assets/icon-128.png"
+  },
   "version": "1.0.0",
-  "description": "A modern Chrome extension built with Vite, Tailwind CSS, and TypeScript",
-  "permissions": [
-    "activeTab",
-    "tabs",
-    "storage",
-    "scripting"
-  ],
+  "description": "Manage your Excalidraw drawings with Github.",
+  "permissions": ["activeTab", "tabs", "storage", "scripting"],
   "action": {
     "default_popup": "popup.html",
     "default_title": "Chrome Extension"
@@ -18,7 +19,7 @@
     "service_worker": "js/background.js",
     "type": "module"
   },
-  
+
   "web_accessible_resources": [
     {
       "resources": ["assets/*"],
@@ -33,4 +34,4 @@
       "run_at": "document_idle"
     }
   ]
-} 
+}

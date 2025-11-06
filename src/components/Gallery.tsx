@@ -1,6 +1,6 @@
 import { Gist } from "@/types/gist";
 import { useActiveProject } from "@/hooks/useActiveProject";
-import { LoadDrawingBgScript } from "@/services_old/background-web-scripts";
+import { LoadDrawingBgScript } from "@/services/background/background-web-scripts";
 import { useState, useMemo } from "react";
 import { GIST_FILENAME } from "@/shared/config";
 
