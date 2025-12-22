@@ -3,13 +3,13 @@ import Header from '@/components/Header'
 import ConnectModal from '@/components/ConnectModal'
 import Gallery from '@/components/Gallery'
 import Sidebar from '@/components/Sidebar'
-import { CHROME_KEYS } from '@/shared/config'
+import { CHROME_KEYS, REPO_KEYS } from '@/shared/config'
 import { useGithubToken, useCurrentGithubValidation } from '@/hooks/useGithub'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getCurrentTab } from '@/services/extension/chrome'
-import { useGetGists } from '@/hooks/useGist'
 
 export const Popup: React.FC = () => {
+  const queryClient = useQueryClient();
   const { isLoading: tabLoading, error: tabError } = useQuery({
     queryKey: CHROME_KEYS.CURRENT_TAB,
     queryFn: getCurrentTab,
@@ -17,12 +17,6 @@ export const Popup: React.FC = () => {
 
   const { githubToken, isGettingGithubToken } = useGithubToken();
   const { currentValidation, isLoadingCurrentValidation } = useCurrentGithubValidation();
-  const { gists, isGistsLoading, refetchGists } = useGetGists(
-    githubToken,
-    currentValidation,
-  );
-
-  console.log("[Popup] gists", gists)
 
   const connectionStatus = useMemo(() => {
     if (isGettingGithubToken || isLoadingCurrentValidation) {
@@ -34,9 +28,8 @@ export const Popup: React.FC = () => {
     return 'connected';
   }, [isGettingGithubToken, isLoadingCurrentValidation]);
 
-
-  const isLoading = tabLoading || isGistsLoading
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const isLoading = tabLoading;
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleCloseModal = useCallback(() => {
     setIsModalOpen(false)
@@ -47,9 +40,9 @@ export const Popup: React.FC = () => {
   }, []);
 
   const handleRefresh = useCallback(() => {
-    // Force fresh data by invalidating and refetching
-    refetchGists();
-  }, [refetchGists]);
+    // Force fresh data by invalidating and refetching drawings
+    queryClient.invalidateQueries({ queryKey: REPO_KEYS.FILE_LIST });
+  }, [queryClient]);
 
   if (isLoading) {
     return (
@@ -82,11 +75,11 @@ export const Popup: React.FC = () => {
       {isModalOpen && <ConnectModal onClose={handleCloseModal} />}
       <Header status={connectionStatus} onConnect={handleConnect} onRefresh={handleRefresh} />
 
-      {gists ? (
+      {connectionStatus === 'connected' ? (
         <div className="flex-1 flex overflow-hidden">
-          <Sidebar onGistCreated={refetchGists} />
+          <Sidebar onDrawingUpdated={handleRefresh} />
           <div className="flex-1 overflow-y-auto p-4">
-            <Gallery gists={gists} />
+            <Gallery />
           </div>
         </div>
       ) : (

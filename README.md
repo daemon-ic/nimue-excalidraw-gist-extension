@@ -1,10 +1,10 @@
 # Nimue - Excalidraw Companion
 
-A Chrome extension that seamlessly manages your Excalidraw drawings by syncing them with GitHub Gists, enabling version control and cross-device access to your diagrams.
+A Chrome extension that seamlessly manages your Excalidraw drawings by syncing them to a private GitHub repository, enabling version control and cross-device access to your diagrams.
 
 ## Features
 
-- **GitHub Integration** – Connect your GitHub account to store drawings as Gists
+- **GitHub Integration** – Connect your GitHub account to store drawings in a private repository
 - **Drawing Gallery** – Browse all your Excalidraw drawings in a visual gallery view
 - **One-Click Loading** – Load any saved drawing into Excalidraw with a single click
 - **Auto-Save** – Save your current drawing to GitHub at any time
@@ -91,7 +91,7 @@ This watches for file changes and automatically rebuilds the extension. You'll n
      - Go to https://github.com/settings/tokens
      - Click "Generate new token (classic)"
      - Give it a name (e.g., "Nimue Extension")
-     - Select the `gist` scope (required to create and manage gists)
+     - Select the `repo` scope (required to create and manage private repositories)
      - Click "Generate token"
      - Copy and paste the token into Nimue
 
@@ -101,7 +101,7 @@ This watches for file changes and automatically rebuilds the extension. You'll n
 1. Open the Nimue extension while on excalidraw.com
 2. Click the **+** (Plus) button in the sidebar
 3. Enter a name for your drawing
-4. A new empty drawing will be created as a GitHub Gist
+4. A new empty drawing will be created and saved to your private GitHub repository
 
 #### Save Your Current Drawing
 1. Make changes to your drawing in Excalidraw
@@ -126,12 +126,12 @@ This watches for file changes and automatically rebuilds the extension. You'll n
 1. Select a drawing from the gallery
 2. Click the **Copy** button
 3. Enter a name for the copy
-4. A new Gist will be created with the current drawing content
+4. A new file will be created in your repository with the current drawing content
 
 #### View on GitHub
 1. Select a drawing from the gallery
 2. Click the **View on GitHub** button (external link icon)
-3. The Gist will open in a new tab
+3. The drawing file will open on GitHub in a new tab
 
 ## Configuration
 
@@ -140,7 +140,7 @@ This watches for file changes and automatically rebuilds the extension. You'll n
 The extension stores your GitHub Personal Access Token in Chrome's local storage. The token is:
 - Stored securely in the browser's extension storage
 - Never transmitted anywhere except to GitHub's official API (api.github.com)
-- Required to have the `gist` scope
+- Required to have the `repo` scope for creating and managing private repositories
 
 To update or change your token:
 1. Disconnect from the current account (if connected)
@@ -148,9 +148,11 @@ To update or change your token:
 
 ### Storage Location
 
-All drawings are stored as GitHub Gists with:
-- Filename: `drawing.excalidraw`
-- Public visibility (configurable in code)
+All drawings are stored in a private GitHub repository named `excalidraw-drawings`:
+- Each drawing is saved as a separate `.excalidraw` file
+- Filenames are automatically slugified (e.g., "My Diagram" → `my-diagram.excalidraw`)
+- Duplicate names are auto-incremented (e.g., `my-diagram-1.excalidraw`)
+- Repository is private and automatically created on first use
 - Full Excalidraw JSON format including elements, appState, and files
 
 ## Permissions
@@ -178,7 +180,7 @@ vite/
 │   │   ├── Header.tsx       # Extension header
 │   │   └── ...
 │   ├── hooks/               # React hooks
-│   │   ├── useGist.ts       # GitHub Gist API hooks
+│   │   ├── useRepository.ts # GitHub Repository API hooks
 │   │   ├── useGithub.ts     # GitHub auth hooks
 │   │   └── useStorage.ts    # Chrome storage hooks
 │   ├── services/
@@ -245,7 +247,7 @@ Manual testing workflow:
 3. Create/modify a drawing in Excalidraw
 4. Open the extension popup
 5. Test each feature (save, load, create, rename, copy)
-6. Verify data persists on GitHub Gists
+6. Verify data persists in your GitHub repository (check `excalidraw-drawings` repo)
 7. Test loading drawings in a new browser/device
 
 ## Roadmap
@@ -254,18 +256,19 @@ Manual testing workflow:
 - Only works on excalidraw.com (not self-hosted instances)
 - Requires manual token entry (no OAuth flow)
 - No offline mode
-- Public gists only (private can be enabled in code)
+- Requires `repo` scope which gives full repository access
 
 ### Future Improvements
 - [ ] OAuth GitHub authentication
-- [ ] Private Gist support toggle
+- [ ] Folder organization within the repository
 - [ ] Offline draft mode with sync
 - [ ] Search and filter drawings
 - [ ] Export drawings to other formats
-- [ ] Collaboration features
+- [ ] Collaboration features (via GitHub collaboration)
 - [ ] Support for self-hosted Excalidraw instances
 - [ ] Automatic backup before loading a drawing
 - [ ] Drawing preview thumbnails
+- [ ] Git commit history viewer
 
 ## Contributing
 

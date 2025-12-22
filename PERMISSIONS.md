@@ -8,10 +8,10 @@ SINGLE PURPOSE
 
 Nimue has one clearly defined purpose:
 
-  To manage and sync Excalidraw drawings with GitHub Gists.
+  To manage and sync Excalidraw drawings with a private GitHub repository.
 
 All features and permissions serve this single purpose:
-  - Save drawings from Excalidraw to GitHub as Gists
+  - Save drawings from Excalidraw to a private GitHub repository
   - Load saved drawings back into Excalidraw
   - Organize and browse your drawing collection
   - Manage drawing metadata (rename, duplicate, view on GitHub)
@@ -82,11 +82,11 @@ Why we need it:
 
 How we use it:
   We store two pieces of data locally in the browser:
-  1. GitHub Personal Access Token - Required to authenticate API requests 
-     to GitHub Gists
+  1. GitHub Personal Access Token - Required to authenticate API requests
+     to GitHub's Repository API (requires `repo` scope)
   2. Active Project Selection - Remembers which drawing is currently selected
 
-  All data stays in the user's browser and is never transmitted to any 
+  All data stays in the user's browser and is never transmitted to any
   third-party servers (only to GitHub's official API).
 
 Code location:

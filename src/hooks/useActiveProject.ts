@@ -1,15 +1,15 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import browser from 'webextension-polyfill';
-import { Gist } from '@/types/gist';
+import { ExcalidrawDrawingMetadata } from '@/types/repository';
 import { STORAGE_KEYS } from '@/shared/config';
 
 // Storage functions
-async function getActiveProjectFn(): Promise<Gist | null> {
+async function getActiveProjectFn(): Promise<ExcalidrawDrawingMetadata | null> {
     const result = await browser.storage.local.get([STORAGE_KEYS.ACTIVE_PROJECT]);
     return result[STORAGE_KEYS.ACTIVE_PROJECT] || null;
 }
 
-async function setActiveProjectFn(project: Gist | null): Promise<Gist | null> {
+async function setActiveProjectFn(project: ExcalidrawDrawingMetadata | null): Promise<ExcalidrawDrawingMetadata | null> {
     await browser.storage.local.set({ [STORAGE_KEYS.ACTIVE_PROJECT]: project });
     return project;
 }

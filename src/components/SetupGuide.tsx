@@ -28,7 +28,7 @@ export default function SetupGuide() {
                   1
                 </div>
                 <a
-                  href="https://github.com/settings/tokens/new?scopes=gist&description=Nimue%20Extension"
+                  href="https://github.com/settings/tokens/new?scopes=repo&description=Nimue%20Extension"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-sm text-blue-800 font-medium hover:text-blue-900 underline decoration-2 underline-offset-2"
@@ -36,7 +36,7 @@ export default function SetupGuide() {
                   Create token on GitHub
                 </a>
               </div>
-  
+
               <div className="flex items-center gap-2">
                 <div className="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-xs font-bold">
                   2
@@ -44,9 +44,9 @@ export default function SetupGuide() {
                 <span className="text-sm text-blue-800">
                   Select{" "}
                   <span className="px-1.5 py-0.5 bg-white rounded border text-xs font-mono">
-                    gist
+                    repo
                   </span>{" "}
-                  scope
+                  scope for private repository access
                 </span>
               </div>
   

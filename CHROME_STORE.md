@@ -1,16 +1,16 @@
 # Nimue - Excalidraw Companion
 
-Never lose your Excalidraw drawings again. Sync, manage, and access your diagrams from anywhere with automatic GitHub backup.
+Never lose your Excalidraw drawings again. Sync, manage, and access your diagrams from anywhere with automatic private GitHub repository backup.
 
 ## Overview
 
-Nimue seamlessly integrates Excalidraw with GitHub, turning your browser into a powerful diagram management system. Whether you're creating technical diagrams, wireframes, or quick sketches, Nimue ensures every drawing is safely backed up and accessible across all your devices. No more lost work, no manual exports – just draw, save, and sync.
+Nimue seamlessly integrates Excalidraw with GitHub, turning your browser into a powerful diagram management system. All your drawings are automatically stored in a private GitHub repository, giving you complete control and privacy. Whether you're creating technical diagrams, wireframes, or quick sketches, Nimue ensures every drawing is safely backed up and accessible across all your devices. No more lost work, no manual exports – just draw, save, and sync.
 
 Perfect for developers, designers, and anyone who relies on Excalidraw for visual thinking.
 
 ## Key Features
 
-- **Automatic GitHub Sync** – Every drawing is backed up as a GitHub Gist, giving you version control and peace of mind. Access your drawings from any computer.
+- **Automatic GitHub Sync** – Every drawing is backed up to your private GitHub repository (`excalidraw-drawings`), giving you version control and complete privacy. Access your drawings from any computer.
 
 - **Visual Gallery** – Browse all your drawings in a clean, organized gallery. See when each drawing was last updated and quickly find what you need.
 
@@ -18,9 +18,9 @@ Perfect for developers, designers, and anyone who relies on Excalidraw for visua
 
 - **Drawing Management** – Create new drawings, rename them, duplicate existing ones, or view them directly on GitHub. Everything you need in one place.
 
-- **Zero Setup Friction** – Connect your GitHub account once, and you're ready to go. All your existing GitHub Gists containing Excalidraw drawings automatically appear.
+- **Zero Setup Friction** – Connect your GitHub account once, and your private repository is automatically created. Start saving drawings immediately.
 
-- **Private & Secure** – Your GitHub token stays in your browser. No data passes through our servers – it's just you and GitHub.
+- **Private & Secure** – All drawings are stored in your private repository. Your GitHub token stays in your browser. No data passes through our servers – it's just you and GitHub.
 
 ## How It Works
 
@@ -36,13 +36,15 @@ That's it! Your drawings are now automatically synced to GitHub, accessible from
 
 ## Why You'll Love It
 
-**Never Lose Work Again** – Browser crashed? Accidentally closed the tab? No problem. Your drawings are safely stored on GitHub, not just in your browser's volatile localStorage.
+**Never Lose Work Again** – Browser crashed? Accidentally closed the tab? No problem. Your drawings are safely stored in your private GitHub repository, not just in your browser's volatile localStorage.
 
-**Work Across Devices** – Start a diagram on your work computer, refine it on your laptop at home, and present it from your tablet. Nimue keeps everything in sync.
+**Work Across Devices** – Start a diagram on your work computer, refine it on your laptop at home, and present it from your tablet. Nimue keeps everything in sync via your GitHub repository.
 
-**Version Control for Diagrams** – Because drawings are stored as GitHub Gists, you get built-in version history. Made a mistake? Check the Gist history to see previous versions.
+**Version Control for Diagrams** – Because drawings are stored as individual files in a GitHub repository, you get built-in version history through Git commits. Made a mistake? Check the commit history to see previous versions.
 
-**Organized Workflow** – Stop saving `.excalidraw` files all over your filesystem. Keep everything organized in one place with descriptive names and timestamps.
+**Organized Workflow** – Stop saving `.excalidraw` files all over your filesystem. Keep everything organized in one centralized repository with descriptive filenames and timestamps.
+
+**Complete Privacy** – All your drawings are stored in a private repository that only you can access. No one else can see your work unless you explicitly grant them access to your repository.
 
 **Lightning Fast** – Built with modern web technologies (React, Vite, TypeScript), Nimue is responsive and never slows down your browser.
 
@@ -61,7 +63,7 @@ Your privacy matters to us. Here's what you should know:
 - Storage – to remember your GitHub token
 - Tabs – to detect when you're on Excalidraw
 
-**GitHub Gists** – Drawings are stored as GitHub Gists using GitHub's secure API. You control who can see them (public or private) and can delete them at any time.
+**Private GitHub Repository** – Drawings are stored in a private GitHub repository (`excalidraw-drawings`) using GitHub's secure API. Only you have access, and you can delete or manage files at any time through GitHub.
 
 ## Getting Started
 
@@ -76,7 +78,7 @@ Your privacy matters to us. Here's what you should know:
    - Go to https://github.com/settings/tokens
    - Click "Generate new token (classic)"
    - Give it a name like "Nimue Extension"
-   - Check the `gist` scope checkbox
+   - Check the `repo` scope checkbox (needed for private repository access)
    - Click "Generate token" and copy it
 
 4. **Connect Nimue**:
@@ -96,7 +98,7 @@ Your privacy matters to us. Here's what you should know:
 
 **Does this extension store my drawings?**
 
-No. All drawings are stored directly in your GitHub account as Gists. Nimue simply provides an interface to manage them. Your data lives on GitHub's servers, not ours.
+No. All drawings are stored directly in your GitHub account in a private repository. Nimue simply provides an interface to manage them. Your data lives on GitHub's servers, not ours.
 
 **Which websites does it work on?**
 
@@ -104,7 +106,7 @@ Nimue works exclusively on https://excalidraw.com. It does not work on self-host
 
 **Is it free?**
 
-Yes! Nimue is completely free to use. GitHub Gists are also free for both public and private gists.
+Yes! Nimue is completely free to use. GitHub private repositories are also free for all users.
 
 **Will it slow down my browser?**
 
@@ -114,13 +116,13 @@ No. Nimue is highly optimized and only runs when you're on Excalidraw.com or whe
 
 Currently, Nimue is built for Chrome and Chromium-based browsers (Edge, Brave, Vivaldi, etc.). Firefox support may come in the future.
 
-**What happens if I delete a Gist on GitHub?**
+**What happens if I delete a drawing file on GitHub?**
 
-If you delete a Gist directly on GitHub, it will no longer appear in Nimue's gallery. The extension only shows Gists that currently exist in your GitHub account.
+If you delete a `.excalidraw` file directly from your repository on GitHub, it will no longer appear in Nimue's gallery. The extension only shows files that currently exist in your `excalidraw-drawings` repository.
 
 **Can other people see my drawings?**
 
-By default, Gists are created as public, meaning anyone with the link can view them. However, they won't be easily discoverable. You can also manually create private Gists on GitHub if you need additional privacy.
+No. Your drawings are stored in a private repository that only you can access. No one else can see your drawings unless you explicitly grant them access to your repository through GitHub's collaboration features.
 
 **Do I need to be connected to the internet?**
 

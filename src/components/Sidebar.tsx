@@ -1,12 +1,12 @@
 import { FiEdit3, FiPlus, FiSave, FiCopy, FiExternalLink } from "react-icons/fi";
 import { useActiveProject } from "@/hooks/useActiveProject";
 import { getExcalidrawDataFromPage } from "@/services/extension/extract";
-import { GIST_FILENAME } from "@/shared/config";
 import { useState } from "react";
 import NameDrawingModal from "./NameDrawingModal";
 import RenameDrawingModal from "./RenameDrawingModal";
 import LoadingOverlay from "./LoadingOverlay";
-import { useCreateGist, useUpdateGist } from "@/hooks/useGist";
+import { useCreateDrawing, useUpdateDrawing, useRenameDrawing } from "@/hooks/useRepository";
+import { useCurrentGithubValidation } from "@/hooks/useGithub";
 
 function SidebarButton({
     label,
@@ -35,92 +35,108 @@ function SidebarButton({
 }
 
 interface SidebarProps {
-    onGistCreated?: () => void;
+    onDrawingUpdated?: () => void;
 }
 
-export default function Sidebar({ onGistCreated }: SidebarProps) {
+export default function Sidebar({ onDrawingUpdated }: SidebarProps) {
     const { activeProject } = useActiveProject();
-    const { createGist, isCreatingGist } = useCreateGist();
-    const { updateGist, isUpdatingGist } = useUpdateGist();
+    const { currentValidation } = useCurrentGithubValidation();
+    const owner = currentValidation?.user?.login;
+
+    const { mutate: createDrawing, isPending: isCreatingDrawing } = useCreateDrawing();
+    const { mutate: updateDrawing, isPending: isUpdatingDrawing } = useUpdateDrawing();
+    const { mutate: renameDrawing, isPending: isRenamingDrawing } = useRenameDrawing();
+
     const [showNewModal, setShowNewModal] = useState(false);
     const [showRenameModal, setShowRenameModal] = useState(false);
     const [showCopyModal, setShowCopyModal] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [loadingMessage, setLoadingMessage] = useState("");
 
-    const isCreating = isLoading || isCreatingGist;
+    const isCreating = isLoading || isCreatingDrawing;
 
     const handleOpenNewDrawingModal = () => {
         setShowNewModal(true);
     };
 
     const handleCreateNewDrawing = async (name: string) => {
+        if (!owner) {
+            alert('Not connected to GitHub');
+            return;
+        }
+
         setIsLoading(true);
         setLoadingMessage("Creating new drawing...");
 
         try {
-            createGist({
-                description: name || "Created from Excalidraw",
-                files: {
-                    [GIST_FILENAME]: {
-                        content: JSON.stringify({
-                            type: "excalidraw",
-                            version: 2,
-                            source: "https://excalidraw.com",
-                            elements: [],
-                            appState: {},
-                            files: {},
-                        }, null, 2),
-                    },
-                },
-                public: true,
+            const emptyDrawing = {
+                type: "excalidraw",
+                version: 2,
+                source: "https://excalidraw.com",
+                elements: [],
+                appState: {},
+                files: {},
+            };
+
+            createDrawing({
+                owner,
+                name: name || "Untitled Drawing",
+                content: JSON.stringify(emptyDrawing, null, 2),
             }, {
-                onSuccess: (newGist) => {
-                    console.log('Gist created successfully:', newGist);
+                onSuccess: (newDrawing) => {
+                    console.log('Drawing created:', newDrawing);
                     setShowNewModal(false);
-                    alert("New drawing created successfully!");
-                    setIsLoading(false);
-                    setLoadingMessage("");
+                    alert(`Drawing created as ${newDrawing.filename}`);
+                    onDrawingUpdated?.();
                 },
                 onError: (error) => {
-                    console.error('Failed to create gist:', error);
-                    alert('Failed to create gist. Please try again.');
+                    console.error('Failed to create drawing:', error);
+                    alert('Failed to create drawing. Please try again.');
+                },
+                onSettled: () => {
                     setIsLoading(false);
                     setLoadingMessage("");
                 }
             });
         } catch (error) {
-            console.error('Failed to get drawing data:', error);
-            const errorMessage = error instanceof Error ? error.message : 'Failed to get drawing data.';
-            alert(errorMessage);
+            console.error('Failed to create drawing:', error);
+            alert(error instanceof Error ? error.message : 'Failed to create drawing.');
             setIsLoading(false);
             setLoadingMessage("");
         }
     };
 
     const handleSaveDrawing = async () => {
-        if (!activeProject) return;
+        if (!activeProject || !owner) return;
+
         setIsLoading(true);
         setLoadingMessage("Saving drawing...");
+
         try {
             const excalidrawData = await getExcalidrawDataFromPage();
-            updateGist({
-                gistId: activeProject.id,
-                request: {
-                    files: {
-                        [GIST_FILENAME]: {
-                            content: JSON.stringify(excalidrawData, null, 2),
-                        },
-                    },
-                },
+
+            updateDrawing({
+                owner,
+                filename: activeProject.filename,
+                content: JSON.stringify(excalidrawData, null, 2),
+                sha: activeProject.sha,
             }, {
                 onSuccess: () => {
-                    onGistCreated?.();
+                    onDrawingUpdated?.();
                     alert("Drawing saved successfully!");
+                },
+                onError: (error) => {
+                    console.error('Failed to save drawing:', error);
+                    alert('Failed to save drawing. Please try again.');
+                },
+                onSettled: () => {
+                    setIsLoading(false);
+                    setLoadingMessage("");
                 }
             });
         } catch (error) {
-        } finally {
+            console.error('Failed to get drawing data:', error);
+            alert('Failed to get drawing data from page.');
             setIsLoading(false);
             setLoadingMessage("");
         }
@@ -132,15 +148,16 @@ export default function Sidebar({ onGistCreated }: SidebarProps) {
     };
 
     const handleRenameSubmit = async (newName: string) => {
-        if (!activeProject) return;
+        if (!activeProject || !owner) return;
 
         setIsLoading(true);
         setLoadingMessage("Renaming drawing...");
 
-        if (newName === activeProject.description) {
+        if (newName === activeProject.name) {
             alert("Drawing name is already the same.");
             setIsLoading(false);
             setLoadingMessage("");
+            setShowRenameModal(false);
             return;
         }
 
@@ -153,23 +170,31 @@ export default function Sidebar({ onGistCreated }: SidebarProps) {
 
         try {
             const excalidrawData = await getExcalidrawDataFromPage();
-            await updateGist({
-                gistId: activeProject.id,
-                request: {
-                    description: newName,
-                    files: {
-                        [GIST_FILENAME]: {
-                            content: JSON.stringify(excalidrawData, null, 2),
-                        },
-                    },
+
+            renameDrawing({
+                owner,
+                oldFilename: activeProject.filename,
+                newName,
+                content: JSON.stringify(excalidrawData, null, 2),
+                sha: activeProject.sha,
+            }, {
+                onSuccess: (renamedDrawing) => {
+                    setShowRenameModal(false);
+                    onDrawingUpdated?.();
+                    alert(`Drawing renamed to ${renamedDrawing.filename}`);
                 },
+                onError: (error) => {
+                    console.error('Failed to rename drawing:', error);
+                    alert('Failed to rename drawing.');
+                },
+                onSettled: () => {
+                    setIsLoading(false);
+                    setLoadingMessage("");
+                }
             });
-            onGistCreated?.();
-            alert("Drawing renamed successfully!");
         } catch (error) {
             console.error('Failed to rename drawing:', error);
             alert('Failed to rename drawing.');
-        } finally {
             setIsLoading(false);
             setLoadingMessage("");
         }
@@ -181,36 +206,44 @@ export default function Sidebar({ onGistCreated }: SidebarProps) {
     };
 
     const handleCopySubmit = async (newName: string) => {
-        if (!activeProject) return;
+        if (!activeProject || !owner) return;
 
         setIsLoading(true);
         setLoadingMessage("Copying drawing...");
 
         try {
             const excalidrawData = await getExcalidrawDataFromPage();
-            const copiedGist = await createGist({
-                description: newName || "Created from Excalidraw",
-                files: {
-                    [GIST_FILENAME]: {
-                        content: JSON.stringify(excalidrawData, null, 2),
-                    },
+
+            createDrawing({
+                owner,
+                name: newName || `${activeProject.name} (Copy)`,
+                content: JSON.stringify(excalidrawData, null, 2),
+            }, {
+                onSuccess: (copiedDrawing) => {
+                    setShowCopyModal(false);
+                    onDrawingUpdated?.();
+                    alert(`Drawing copied as ${copiedDrawing.filename}`);
                 },
-                public: true,
+                onError: (error) => {
+                    console.error('Failed to copy drawing:', error);
+                    alert('Failed to copy drawing.');
+                },
+                onSettled: () => {
+                    setIsLoading(false);
+                    setLoadingMessage("");
+                }
             });
-            onGistCreated?.();
-            alert("Drawing copied successfully!");
         } catch (error) {
             console.error('Failed to copy drawing:', error);
-            const errorMessage = error instanceof Error ? error.message : 'Failed to copy drawing.';
-            alert(errorMessage);
-        } finally {
+            alert('Failed to copy drawing.');
             setIsLoading(false);
+            setLoadingMessage("");
         }
     };
 
     const handleViewOnGitHub = () => {
         if (!activeProject) return;
-        window.open(activeProject.html_url, '_blank');
+        window.open(activeProject.htmlUrl, '_blank');
     };
 
     const buttons = [
@@ -274,7 +307,7 @@ export default function Sidebar({ onGistCreated }: SidebarProps) {
                 <RenameDrawingModal
                     onClose={() => setShowRenameModal(false)}
                     onSubmit={handleRenameSubmit}
-                    currentName={activeProject.description}
+                    currentName={activeProject.name}
                 />
             )}
 
@@ -284,12 +317,12 @@ export default function Sidebar({ onGistCreated }: SidebarProps) {
                     onSubmit={handleCopySubmit}
                     title="Copy Drawing"
                     placeholder="Enter name for copied drawing..."
-                    initialValue={`${activeProject.description} (Copy)`}
+                    initialValue={`${activeProject.name} (Copy)`}
                 />
             )}
 
             {/* Loading Overlay */}
-            <LoadingOverlay isVisible={isCreating} message={loadingMessage || "Creating gist..."} />
+            <LoadingOverlay isVisible={isCreating} message={loadingMessage || "Creating drawing..."} />
         </div>
     )
 }

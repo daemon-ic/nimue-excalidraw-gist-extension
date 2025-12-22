@@ -65,7 +65,7 @@ export default function ConnectModal({ onClose }: { onClose: () => void }) {
           <h3 className="text-lg font-semibold text-gray-900 mb-1">
             Connect to GitHub
           </h3>
-          <p className="text-sm text-gray-600">Sync your drawings as Gists</p>
+          <p className="text-sm text-gray-600">Sync your drawings to a private repository</p>
         </div>
 
         {/* Current Token Status */}
@@ -103,7 +103,7 @@ export default function ConnectModal({ onClose }: { onClose: () => void }) {
         {hasValidationError && (
           <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
             <p className="text-sm text-red-700">
-              ❌ Invalid token - check it has 'gist' scope
+              ❌ Invalid token - check it has 'repo' scope
             </p>
           </div>
         )}
