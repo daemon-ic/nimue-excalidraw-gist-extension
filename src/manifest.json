@@ -7,7 +7,7 @@
     "48": "assets/icon-48.png",
     "128": "assets/icon-128.png"
   },
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Manage your Excalidraw drawings with a private GitHub repository.",
   "permissions": ["activeTab", "tabs", "storage", "scripting"],
   "action": {
