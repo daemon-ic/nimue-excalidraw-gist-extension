@@ -10,7 +10,7 @@ Perfect for developers, designers, and anyone who relies on Excalidraw for visua
 
 ## Key Features
 
-- **Automatic GitHub Sync** – Every drawing is backed up to your private GitHub repository (`excalidraw-drawings`), giving you version control and complete privacy. Access your drawings from any computer.
+- **Automatic GitHub Sync** – Every drawing is backed up to your private GitHub repository (`nimue-excalidraw-storage`), giving you version control and complete privacy. Access your drawings from any computer.
 
 - **Visual Gallery** – Browse all your drawings in a clean, organized gallery. See when each drawing was last updated and quickly find what you need.
 
@@ -63,7 +63,7 @@ Your privacy matters to us. Here's what you should know:
 - Storage – to remember your GitHub token
 - Tabs – to detect when you're on Excalidraw
 
-**Private GitHub Repository** – Drawings are stored in a private GitHub repository (`excalidraw-drawings`) using GitHub's secure API. Only you have access, and you can delete or manage files at any time through GitHub.
+**Private GitHub Repository** – Drawings are stored in a private GitHub repository (`nimue-excalidraw-storage`) using GitHub's secure API. Only you have access, and you can delete or manage files at any time through GitHub.
 
 ## Getting Started
 
@@ -118,7 +118,7 @@ Currently, Nimue is built for Chrome and Chromium-based browsers (Edge, Brave, V
 
 **What happens if I delete a drawing file on GitHub?**
 
-If you delete a `.excalidraw` file directly from your repository on GitHub, it will no longer appear in Nimue's gallery. The extension only shows files that currently exist in your `excalidraw-drawings` repository.
+If you delete a `.excalidraw` file directly from your repository on GitHub, it will no longer appear in Nimue's gallery. The extension only shows files that currently exist in your `nimue-excalidraw-storage` repository.
 
 **Can other people see my drawings?**
 

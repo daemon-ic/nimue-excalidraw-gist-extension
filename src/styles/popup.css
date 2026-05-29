@@ -1,0 +1,7 @@
+/* Chrome extension popup only — never load on excalidraw.com */
+
+body.nimue-popup {
+  margin: 0;
+  width: 380px;
+  min-height: 200px;
+}

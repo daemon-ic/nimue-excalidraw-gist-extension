@@ -1,0 +1,575 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --nimue-purple: #6965db;
+  --nimue-purple-light: #e0dfff;
+  --nimue-purple-dark: #5b57c9;
+  --nimue-bg: #ffffff;
+  --nimue-border: #e8e8f0;
+  --nimue-text: #1b1b1f;
+  --nimue-muted: #6e6e6e;
+}
+
+.nimue-shell {
+  display: flex;
+  flex-direction: column;
+  background: var(--nimue-bg);
+  overflow: hidden;
+  color: var(--nimue-text);
+  font-size: 13px;
+}
+
+/* In-page dropdown sizing (position: excalidraw-page.css) */
+.nimue-shell--dropdown {
+  display: flex;
+  flex-direction: column;
+}
+
+.nimue-shell--popup {
+  position: static;
+  width: 380px;
+  max-height: 520px;
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
+}
+
+/* ── Header (drawing + account + actions) ── */
+.nimue-header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  gap: 4px 8px;
+  align-items: start;
+  padding: 10px 12px;
+  background: #fff;
+  border-bottom: 1px solid var(--nimue-border);
+}
+
+.nimue-header--disconnected {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: #fafaff;
+}
+
+.nimue-header__hint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--nimue-muted);
+  min-width: 0;
+}
+
+.nimue-header__doc {
+  grid-column: 1;
+  grid-row: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.nimue-header__name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.nimue-header__file-icon {
+  flex-shrink: 0;
+  color: var(--nimue-purple);
+  opacity: 0.85;
+}
+
+.nimue-header__name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--nimue-text);
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nimue-header__name--empty {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--nimue-muted);
+  font-style: italic;
+}
+
+.nimue-header__account {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  align-self: flex-start;
+  padding: 2px 8px 2px 6px;
+  border-radius: 999px;
+  background: var(--nimue-purple-light);
+  color: var(--nimue-purple-dark);
+  font-size: 11px;
+  font-weight: 500;
+  text-decoration: none;
+  max-width: 100%;
+}
+
+.nimue-header__account span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nimue-header__account:hover {
+  background: #d4d2ff;
+}
+
+.nimue-header__actions {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.nimue-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--nimue-muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.nimue-icon-btn:hover {
+  background: var(--nimue-purple-light);
+  color: var(--nimue-purple-dark);
+  border-color: rgba(105, 101, 219, 0.15);
+}
+
+.nimue-icon-btn--active {
+  background: var(--nimue-purple-light);
+  color: var(--nimue-purple);
+  border-color: rgba(105, 101, 219, 0.25);
+}
+
+.nimue-icon-btn--primary {
+  width: auto;
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--nimue-purple);
+  color: #fff;
+}
+
+.nimue-icon-btn--primary:hover {
+  background: var(--nimue-purple-dark);
+  color: #fff;
+}
+
+.nimue-icon-btn--text {
+  width: auto;
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.nimue-icon-btn--heart:hover,
+.nimue-icon-btn--heart:focus-visible {
+  color: #e11d48;
+  background: #fff1f2;
+  border-color: rgba(225, 29, 72, 0.2);
+}
+
+/* Styled tooltips (replaces native title) */
+.nimue-has-tooltip {
+  position: relative;
+}
+
+.nimue-has-tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  z-index: 20;
+  transform: translateX(-50%) translateY(-2px);
+  padding: 5px 8px;
+  border-radius: 6px;
+  background: var(--nimue-text);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.3;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.12s ease,
+    transform 0.12s ease,
+    visibility 0.12s;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+}
+
+.nimue-has-tooltip:hover::after,
+.nimue-has-tooltip:focus-visible::after {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+.nimue-header__actions .nimue-has-tooltip:nth-last-child(-n + 2)::after {
+  left: auto;
+  right: 0;
+  transform: translateY(-2px);
+}
+
+.nimue-header__actions .nimue-has-tooltip:nth-last-child(-n + 2):hover::after,
+.nimue-header__actions .nimue-has-tooltip:nth-last-child(-n + 2):focus-visible::after {
+  transform: translateY(0);
+}
+
+/* ── Sync status ── */
+.nimue-sync-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 14px;
+  background: #fafaff;
+  border-bottom: 1px solid var(--nimue-border);
+}
+
+.nimue-sync {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.nimue-sync__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.nimue-sync--synced .nimue-sync__dot {
+  background: #22c55e;
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.25);
+}
+
+.nimue-sync--synced .nimue-sync__label {
+  color: #15803d;
+}
+
+.nimue-sync--syncing .nimue-sync__dot {
+  background: #22c55e;
+  animation: nimue-sync-pulse 1s ease-in-out infinite;
+}
+
+.nimue-sync--syncing .nimue-sync__label {
+  color: var(--nimue-muted);
+}
+
+@keyframes nimue-sync-pulse {
+  50% {
+    opacity: 0.35;
+    transform: scale(0.85);
+  }
+}
+
+.nimue-autosave-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 11px;
+  color: var(--nimue-muted);
+  flex-shrink: 0;
+}
+
+/* ── Toolbar ── */
+.nimue-toolbar {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--nimue-border);
+}
+
+.nimue-toolbar .nimue-tool:nth-child(4),
+.nimue-toolbar .nimue-tool:nth-child(5) {
+  grid-column: span 1;
+}
+
+.nimue-tool {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 8px 4px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--nimue-text);
+  font-size: 10px;
+  cursor: pointer;
+  min-height: 52px;
+}
+
+.nimue-tool span {
+  line-height: 1.1;
+}
+
+.nimue-tool:hover:not(:disabled) {
+  background: var(--nimue-purple-light);
+  color: var(--nimue-purple-dark);
+}
+
+.nimue-tool:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* ── List ── */
+.nimue-section {
+  padding: 12px 14px;
+}
+
+.nimue-section--list {
+  flex: 1;
+  overflow-y: auto;
+  padding-top: 8px;
+}
+
+.nimue-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nimue-list__item {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--nimue-border);
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  text-align: left;
+  position: relative;
+}
+
+.nimue-list__item:hover {
+  border-color: var(--nimue-purple);
+}
+
+.nimue-list__item--active {
+  background: var(--nimue-purple-light);
+  border-color: var(--nimue-purple);
+}
+
+.nimue-list__name {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.nimue-list__meta {
+  font-size: 10px;
+  color: var(--nimue-muted);
+}
+
+.nimue-list__spinner {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  margin-top: -7px;
+  border: 2px solid var(--nimue-purple-light);
+  border-top-color: var(--nimue-purple);
+  border-radius: 50%;
+  animation: nimue-spin 0.7s linear infinite;
+}
+
+@keyframes nimue-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.nimue-empty {
+  text-align: center;
+  color: var(--nimue-muted);
+  font-size: 12px;
+  padding: 16px 0;
+}
+
+/* ── Connect ── */
+.nimue-connect {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.nimue-connect__hint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--nimue-muted);
+  line-height: 1.4;
+}
+
+.nimue-connect--ok p {
+  margin: 0 0 8px;
+}
+
+.nimue-connect__label {
+  margin: 0;
+  font-size: 13px;
+}
+
+.nimue-connect__row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.nimue-btn--danger {
+  color: #dc2626;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.nimue-section--account {
+  background: #fafaff;
+  border-bottom: 1px solid var(--nimue-border);
+}
+
+/* ── Forms ── */
+.nimue-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--nimue-border);
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: ui-monospace, monospace;
+}
+
+.nimue-input:focus {
+  outline: 2px solid var(--nimue-purple-light);
+  border-color: var(--nimue-purple);
+}
+
+.nimue-btn {
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+}
+
+.nimue-btn--primary {
+  background: var(--nimue-purple);
+  color: #fff;
+}
+
+.nimue-btn--primary:hover {
+  background: var(--nimue-purple-dark);
+}
+
+.nimue-btn--ghost {
+  background: transparent;
+  color: var(--nimue-muted);
+}
+
+.nimue-btn--ghost:hover {
+  background: #f3f3f8;
+}
+
+.nimue-btn--sm {
+  padding: 5px 10px;
+  font-size: 12px;
+}
+
+.nimue-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.nimue-error {
+  color: #dc2626;
+  font-size: 12px;
+  margin: 0;
+}
+
+.nimue-error--block {
+  line-height: 1.4;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.nimue-error__link {
+  color: var(--nimue-purple);
+  font-weight: 600;
+  display: inline-block;
+  margin-top: 6px;
+}
+
+.nimue-connect__hint a {
+  color: var(--nimue-purple);
+}
+
+/* ── Dialog ── */
+.nimue-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  padding: 16px;
+}
+
+.nimue-dialog {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  width: 100%;
+  max-width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.nimue-dialog h3 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.nimue-dialog__actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
