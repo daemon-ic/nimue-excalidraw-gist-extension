@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Nimue — Excalidraw + GitHub",
+  "name": "Nimue — Github Storage for Excalidraw",
   "version": "1.0.0",
   "description": "Save, load, and autosync Excalidraw drawings to a private GitHub repository.",
   "icons": {

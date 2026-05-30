@@ -17,12 +17,7 @@ import type { DrawingMeta } from '@/types';
 
 type Prompt = { kind: 'new' | 'rename' | 'copy'; initial?: string };
 
-type AppProps = {
-  variant: 'panel' | 'popup';
-};
-
-export function App({ variant }: AppProps) {
-  const inPage = variant === 'panel';
+export function App() {
   const [open, setOpen] = useState(false);
   const [showConnect, setShowConnect] = useState(false);
   const [prompt, setPrompt] = useState<Prompt | null>(null);
@@ -32,12 +27,12 @@ export function App({ variant }: AppProps) {
 
   const auth = useAuth();
   const owner = auth.user?.login;
-  const drawings = useDrawings(owner, inPage);
+  const drawings = useDrawings(owner);
   const active = drawings.active.data;
 
   const settingsQuery = useQuery({ queryKey: QUERY.settings, queryFn: getSettings });
 
-  const autosaveEnabled = inPage && (settingsQuery.data?.autosave ?? true);
+  const autosaveEnabled = settingsQuery.data?.autosave ?? true;
 
   const autosave = useAutosave(
     autosaveEnabled,
@@ -76,18 +71,16 @@ export function App({ variant }: AppProps) {
   }
 
   useEffect(() => {
-    if (!inPage) return;
     setNimueAnchor(true);
     return () => setNimueAnchor(false);
-  }, [inPage]);
+  }, []);
 
   useEffect(() => {
-    if (!inPage) return;
     notifyExcalidrawResize();
-  }, [inPage, open]);
+  }, [open]);
 
   useEffect(() => {
-    if (!inPage || !open) return;
+    if (!open) return;
 
     const onPointerDown = (e: PointerEvent) => {
       const host = document.getElementById('nimue-host');
@@ -97,7 +90,7 @@ export function App({ variant }: AppProps) {
 
     document.addEventListener('pointerdown', onPointerDown, true);
     return () => document.removeEventListener('pointerdown', onPointerDown, true);
-  }, [inPage, open]);
+  }, [open]);
 
   const panelBody = (
     <>
@@ -123,13 +116,11 @@ export function App({ variant }: AppProps) {
 
       {auth.isConnected && (
         <>
-          {inPage && (
-            <SyncBar
-              syncing={isSyncing}
-              autosaveEnabled={autosaveEnabled}
-              onAutosaveToggle={toggleAutosave}
-            />
-          )}
+          <SyncBar
+            syncing={isSyncing}
+            autosaveEnabled={autosaveEnabled}
+            onAutosaveToggle={toggleAutosave}
+          />
 
           <Toolbar
             active={active}
@@ -206,24 +197,20 @@ export function App({ variant }: AppProps) {
     </>
   );
 
-  if (inPage) {
-    return (
-      <div className="nimue-root">
-        <button
-          type="button"
-          className={`nimue-trigger nimue-has-tooltip${open ? ' nimue-trigger--active' : ''}`}
-          onClick={() => setOpen((v) => !v)}
-          aria-label="Nimue"
-          aria-expanded={open}
-          data-tooltip={open ? 'Close Nimue' : 'Open Nimue'}
-        >
-          <img src={NIMUE_LOGO_URL} alt="" className="nimue-trigger__logo" width={16} height={16} />
-          <span className="nimue-trigger__label">Nimue</span>
-        </button>
-        {open && <div className="nimue-shell nimue-shell--dropdown">{panelBody}</div>}
-      </div>
-    );
-  }
-
-  return <div className="nimue-shell nimue-shell--popup">{panelBody}</div>;
+  return (
+    <div className="nimue-root">
+      <button
+        type="button"
+        className={`nimue-trigger nimue-has-tooltip${open ? ' nimue-trigger--active' : ''}`}
+        onClick={() => setOpen((v) => !v)}
+        aria-label="Nimue"
+        aria-expanded={open}
+        data-tooltip={open ? 'Close Nimue' : 'Open Nimue'}
+      >
+        <img src={NIMUE_LOGO_URL} alt="" className="nimue-trigger__logo" width={16} height={16} />
+        <span className="nimue-trigger__label">Nimue</span>
+      </button>
+      {open && <div className="nimue-shell nimue-shell--dropdown">{panelBody}</div>}
+    </div>
+  );
 }

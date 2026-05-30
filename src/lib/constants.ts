@@ -28,4 +28,5 @@ export const QUERY = {
 
 export const MSG = {
   autosave: 'AUTOSAVE',
+  openUrl: 'OPEN_URL',
 } as const;

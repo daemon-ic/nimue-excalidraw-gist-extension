@@ -17,7 +17,7 @@ function mount() {
   createRoot(host).render(
     <StrictMode>
       <QueryProvider>
-        <App variant="panel" />
+        <App />
       </QueryProvider>
     </StrictMode>
   );

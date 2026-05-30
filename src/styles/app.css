@@ -148,6 +148,8 @@
   background: transparent;
   color: var(--nimue-muted);
   cursor: pointer;
+  text-decoration: none;
+  box-sizing: border-box;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
 
@@ -184,11 +186,11 @@
   font-weight: 600;
 }
 
-.nimue-icon-btn--heart:hover,
-.nimue-icon-btn--heart:focus-visible {
-  color: #e11d48;
-  background: #fff1f2;
-  border-color: rgba(225, 29, 72, 0.2);
+.nimue-icon-btn--coffee:hover,
+.nimue-icon-btn--coffee:focus-visible {
+  color: #a16207;
+  background: #fef9c3;
+  border-color: rgba(234, 179, 8, 0.35);
 }
 
 /* Styled tooltips (replaces native title) */

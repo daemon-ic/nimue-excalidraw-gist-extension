@@ -1,7 +1,108 @@
 /* Chrome extension popup only — never load on excalidraw.com */
 
+:root {
+  --nimue-purple: #6965db;
+  --nimue-purple-dark: #5b57c9;
+  --nimue-border: #e8e8f0;
+  --nimue-text: #1b1b1f;
+  --nimue-muted: #6e6e6e;
+}
+
 body.nimue-popup {
   margin: 0;
-  width: 380px;
-  min-height: 200px;
+  width: 260px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--nimue-text);
+  background: #fff;
+}
+
+.nimue-popup-info {
+  padding: 12px 14px;
+}
+
+.nimue-popup-info__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.nimue-popup-info__logo {
+  border-radius: 5px;
+  flex-shrink: 0;
+}
+
+.nimue-popup-info__title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--nimue-text);
+  line-height: 1.2;
+}
+
+.nimue-popup-info__tagline {
+  margin: 1px 0 0;
+  font-size: 11px;
+  color: var(--nimue-muted);
+}
+
+.nimue-popup-info__text {
+  margin: 0;
+  font-size: 11px;
+  color: var(--nimue-muted);
+}
+
+.nimue-popup-info__text strong {
+  font-weight: 600;
+  color: var(--nimue-text);
+}
+
+.nimue-popup-info__nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  margin-top: 10px;
+}
+
+.nimue-popup-info__link {
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--nimue-purple);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.nimue-popup-info__link:hover {
+  color: var(--nimue-purple-dark);
+  text-decoration: underline;
+}
+
+.nimue-popup-info__sep {
+  color: var(--nimue-border);
+  font-size: 11px;
+  user-select: none;
+}
+
+.nimue-popup-info__footer {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--nimue-border);
+}
+
+.nimue-popup-info__footer a {
+  font-size: 10px;
+  color: var(--nimue-muted);
+  text-decoration: none;
+}
+
+.nimue-popup-info__footer a:hover {
+  color: var(--nimue-purple);
+  text-decoration: underline;
 }

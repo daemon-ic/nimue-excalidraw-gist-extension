@@ -1,0 +1,147 @@
+CHROME EXTENSION PERMISSIONS JUSTIFICATION
+
+This document explains why Nimue requires each Chrome permission declared in
+src/manifest.json.
+
+
+SINGLE PURPOSE
+
+Nimue has one clearly defined purpose:
+
+  To manage and sync Excalidraw drawings with a private GitHub repository.
+
+All features and permissions serve this single purpose:
+  - Save drawings from Excalidraw to a private GitHub repository
+  - Load saved drawings back into Excalidraw
+  - Autosave changes while you draw (in-page panel)
+  - Organize and browse your drawing collection
+  - Manage drawing metadata (rename, copy, view on GitHub)
+
+The extension does not perform any other functions, track user behavior,
+inject ads, or modify web pages beyond its stated purpose.
+
+
+PERMISSION SUMMARY
+
+storage
+  Purpose: Store GitHub token, active drawing, and user preferences
+
+tabs
+  Purpose: Find the Excalidraw tab from the toolbar popup; open support links
+
+scripting
+  Purpose: Read and write Excalidraw canvas data from the toolbar popup
+
+host_permissions (excalidraw.com, api.github.com)
+  Purpose: In-page panel and canvas storage on Excalidraw; sync with GitHub API only
+
+
+DETAILED JUSTIFICATIONS
+
+storage
+-------
+Why we need it:
+  To persist user settings and authentication locally in the browser.
+
+How we use it:
+  We store three pieces of data in chrome.storage.local:
+  1. GitHub Personal Access Token - authenticates requests to GitHub's
+     Repository API (classic token with repo scope)
+  2. Active Drawing - remembers which drawing is currently loaded
+  3. Settings - autosave on/off and autosave interval
+
+  All data stays in the user's browser and is never transmitted to any
+  third-party servers (only to GitHub's official API).
+
+Code location:
+  src/lib/storage.ts
+  src/app/hooks/useAuth.ts
+  src/app/hooks/useDrawings.ts
+  src/background/index.ts
+
+
+tabs
+----
+Why we need it:
+  To locate the Excalidraw browser tab when the user opens the toolbar popup.
+
+How we use it:
+  When the user interacts from the toolbar popup (not the in-page panel), we
+  use chrome.tabs.query() to find an open https://excalidraw.com tab so we
+  can target it for read/load operations. We also use chrome.tabs.create()
+  to open external links such as the support page.
+
+Code location:
+  src/lib/excalidraw.ts (getExcalidrawTabId)
+  src/lib/openUrl.ts
+
+
+scripting
+---------
+Why we need it:
+  To read and write Excalidraw drawing data when the user works from the
+  toolbar popup.
+
+How we use it:
+  From the toolbar popup, the extension cannot access the page directly. We
+  use chrome.scripting.executeScript() to run code in the Excalidraw tab that:
+  1. Reads drawings - extracts canvas data from localStorage and IndexedDB
+     (excalidraw, excalidraw-state, files-db)
+  2. Loads drawings - writes selected drawing data back to localStorage and
+     IndexedDB, then reloads the page
+
+  When the user works from the in-page panel on excalidraw.com, the content
+  script runs in the same page context and reads/writes directly. Scripting
+  is not used on that path.
+
+Code location:
+  src/lib/excalidraw.ts (captureScene, applyScene)
+  src/app/hooks/useDrawings.ts
+
+
+host_permissions (https://excalidraw.com/*, https://api.github.com/*)
+---------------------------------------------------------------------
+Why we need it:
+  Nimue only talks to Excalidraw (the page you draw on) and GitHub (where
+  drawings are stored). No other websites are accessed.
+
+How we use it:
+  excalidraw.com - content script and in-page panel; read/write canvas data
+  in localStorage and IndexedDB; save, load, and autosave while you draw.
+
+  api.github.com - list, read, create, update, and rename files in your
+  private nimue-excalidraw-storage repo using your stored GitHub token.
+
+Code location:
+  src/manifest.json
+  src/content/index.tsx
+  src/lib/excalidraw.ts
+  src/lib/github.ts
+  src/background/index.ts
+
+
+GITHUB TOKEN (NOT A CHROME PERMISSION)
+
+Nimue does not use OAuth. The user provides a GitHub Personal Access Token
+manually. We recommend a classic token with the repo scope so the extension
+can create and access a private repository. Fine-grained tokens often cannot
+create repositories.
+
+The token is stored only in chrome.storage.local and is sent only to
+api.github.com with each API request.
+
+
+PRIVACY COMMITMENT
+
+- No tracking or analytics - we don't collect any usage data
+- No external servers - all data flows between your browser, excalidraw.com,
+  and GitHub only
+- Open source - all code is publicly available for inspection
+- Minimal scope - permissions are limited to only what's necessary
+- Private by default - repository creation only attempts private repos
+
+
+QUESTIONS?
+
+If you have concerns about any permission, please open an issue on our
+GitHub repository.

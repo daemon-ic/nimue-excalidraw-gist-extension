@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { useAuth } from '@/app/hooks/useAuth';
+import { NIMUE_PRIVACY_URL } from '@/lib/brand';
 
 type Props = {
   auth: ReturnType<typeof useAuth>;
@@ -93,6 +94,11 @@ export function ConnectForm({ auth, editing = false, onDone }: Props) {
       >
         {auth.connect.isPending ? 'Connecting…' : 'Connect GitHub'}
       </button>
+      <p className="nimue-connect__hint">
+        <a href={NIMUE_PRIVACY_URL} target="_blank" rel="noreferrer">
+          Privacy policy
+        </a>
+      </p>
     </div>
   );
 }

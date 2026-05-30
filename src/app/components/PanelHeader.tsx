@@ -1,4 +1,5 @@
-import { FiFileText, FiGithub, FiHeart, FiRefreshCw, FiSettings } from 'react-icons/fi';
+import { FiFileText, FiGithub, FiRefreshCw, FiSettings } from 'react-icons/fi';
+import { SiBuymeacoffee } from 'react-icons/si';
 import { IconTooltipButton } from '@/app/components/IconTooltipButton';
 import { NIMUE_SUPPORT_URL } from '@/lib/brand';
 import type { DrawingMeta } from '@/types';
@@ -22,14 +23,18 @@ export function PanelHeader({
   onToggleAccount,
   onRefresh,
 }: PanelHeaderProps) {
-  const openSupport = () => {
-    if (!NIMUE_SUPPORT_URL) return;
-    chrome.tabs.create({ url: NIMUE_SUPPORT_URL });
-  };
-
-  const supportTooltip = NIMUE_SUPPORT_URL
-    ? 'Support Nimue'
-    : 'Support Nimue (coming soon)';
+  const supportLink = (
+    <a
+      href={NIMUE_SUPPORT_URL}
+      target="_blank"
+      rel="noreferrer"
+      className="nimue-icon-btn nimue-icon-btn--coffee nimue-has-tooltip"
+      aria-label="Buy me a coffee"
+      data-tooltip="Buy me a coffee"
+    >
+      <SiBuymeacoffee size={16} aria-hidden />
+    </a>
+  );
 
   const actions = (
     <div className="nimue-header__actions">
@@ -61,14 +66,7 @@ export function PanelHeader({
           </IconTooltipButton>
         </>
       )}
-      <IconTooltipButton
-        label="Support Nimue"
-        tooltip={supportTooltip}
-        onClick={openSupport}
-        className="nimue-icon-btn--heart"
-      >
-        <FiHeart size={16} />
-      </IconTooltipButton>
+      {supportLink}
     </div>
   );
 

@@ -1,4 +1,4 @@
-# Nimue — Excalidraw + GitHub
+# Nimue — Github Storage for Excalidraw
 
 Chrome extension that syncs [Excalidraw](https://excalidraw.com) drawings to a private GitHub repo (`nimue-excalidraw-storage`), with autosave and an in-page file panel.
 
@@ -7,7 +7,7 @@ Chrome extension that syncs [Excalidraw](https://excalidraw.com) drawings to a p
 - Connect with a GitHub personal access token (`repo` scope)
 - Create, save, load, rename, and copy drawings
 - Autosave to GitHub while you draw (in-page panel)
-- Embedded images via Excalidraw’s IndexedDB (same approach as [excalisave](https://github.com/atharvakadlag/excalisave))
+- Embedded images via Excalidraw’s IndexedDB
 - In-page panel on excalidraw.com + toolbar popup
 
 ## Project layout
@@ -35,10 +35,15 @@ Load the **`dist`** folder as an unpacked extension.
 ## Usage
 
 1. Open https://excalidraw.com
-2. Click the **Nimue** tab on the left edge of the page
-3. Connect GitHub (token with `repo` scope)
+2. Click **Nimue** in the top-right toolbar (below Excalidraw+, Share, and Library)
+3. Connect GitHub (classic token with `repo` scope)
 4. **New** → create a drawing; select one from the list to load
 5. Edit the canvas — **Autosave** pushes changes to GitHub when a drawing is active
+
+## Permissions & privacy
+
+- [PERMISSIONS.txt](./PERMISSIONS.txt) — Chrome Web Store permission justifications (plain text)
+- [PRIVACY.md](./PRIVACY.md) — privacy policy (hosted at [daemon-ic.github.io/.../privacy.html](https://daemon-ic.github.io/nimue-excalidraw-gist-extension/privacy.html))
 
 ## License
 

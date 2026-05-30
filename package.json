@@ -1,12 +1,13 @@
 {
   "name": "nimue-excalidraw-github",
   "version": "1.0.0",
-  "description": "Excalidraw drawings synced to a private GitHub repository",
+  "description": "Nimue — Github Storage for Excalidraw",
   "type": "module",
   "packageManager": "pnpm@8.15.0",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
+    "package": "pnpm build && rm -f nimue-excalidraw-github.zip && cd dist && zip -r ../nimue-excalidraw-github.zip .",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {

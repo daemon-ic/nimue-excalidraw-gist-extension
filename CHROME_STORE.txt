@@ -1,0 +1,184 @@
+NIMUE — GITHUB STORAGE FOR EXCALIDRAW
+
+Never lose your Excalidraw drawings again. Sync, manage, and access your diagrams from anywhere with automatic private GitHub repository backup.
+
+
+CHROME WEB STORE DASHBOARD
+
+Use these values when submitting or updating the listing.
+
+Privacy policy URL:
+https://daemon-ic.github.io/nimue-excalidraw-gist-extension/privacy.html
+
+Single purpose:
+Sync Excalidraw drawings to the user's private GitHub repository
+
+Permission justifications:
+See PERMISSIONS.txt in the repository
+
+
+Enable GitHub Pages (one-time)
+
+1. Push docs/privacy.html and .github/workflows/pages.yml to GitHub.
+2. Repo Settings, Pages, Build and deployment, Source: GitHub Actions.
+3. After the Deploy privacy policy to GitHub Pages workflow succeeds, open the privacy URL above to confirm it loads.
+4. In the Chrome Web Store Developer Dashboard (https://chrome.google.com/webstore/devconsole), open your item, Privacy, paste the privacy policy URL, save.
+
+The connect screen in the extension also links to this URL.
+
+
+================================================================================
+STORE LISTING COPY (paste below into the Chrome Web Store description)
+================================================================================
+
+
+OVERVIEW
+
+Nimue seamlessly integrates Excalidraw with GitHub, turning your browser into a powerful diagram management system. All your drawings are automatically stored in a private GitHub repository, giving you complete control and privacy. Whether you're creating technical diagrams, wireframes, or quick sketches, Nimue ensures every drawing is safely backed up and accessible across all your devices. No more lost work, no manual exports. Just draw, save, and sync.
+
+Perfect for developers, designers, and anyone who relies on Excalidraw for visual thinking.
+
+
+KEY FEATURES
+
+Automatic GitHub Sync
+Every drawing is backed up to your private GitHub repository (nimue-excalidraw-storage), giving you version control and complete privacy. Access your drawings from any computer.
+
+Visual Gallery
+Browse all your drawings in a clean, organized gallery. See when each drawing was last updated and quickly find what you need.
+
+One-Click Load and Save
+Click any drawing to instantly load it into Excalidraw. Made changes? Save them back to GitHub with a single click.
+
+Drawing Management
+Create new drawings, rename them, duplicate existing ones, or view them directly on GitHub. Everything you need in one place.
+
+Zero Setup Friction
+Connect your GitHub account once, and your private repository is automatically created. Start saving drawings immediately.
+
+Private and Secure
+All drawings are stored in your private repository. Your GitHub token stays in your browser. No data passes through our servers. It is just you and GitHub.
+
+
+HOW IT WORKS
+
+1. Install Nimue from the Chrome Web Store and pin it to your toolbar if you like.
+
+2. Connect to GitHub by entering a Personal Access Token (classic token with repo scope).
+
+3. Open Excalidraw at https://excalidraw.com and start drawing.
+
+4. Click the Nimue button below the top-right toolbar on Excalidraw to open your drawing gallery, save your current work, or load a previous drawing.
+
+That is it. Your drawings are automatically synced to GitHub, accessible from any device where you install Nimue with the same GitHub account.
+
+
+WHY YOU WILL LOVE IT
+
+Never Lose Work Again
+Browser crashed? Accidentally closed the tab? Your drawings are safely stored in your private GitHub repository, not just in your browser's localStorage.
+
+Work Across Devices
+Start a diagram on your work computer, refine it on your laptop at home, and present it from your tablet. Nimue keeps everything in sync via your GitHub repository.
+
+Version Control for Diagrams
+Drawings are stored as individual files in a GitHub repository, so you get built-in version history through Git commits. Made a mistake? Check the commit history to see previous versions.
+
+Organized Workflow
+Stop saving .excalidraw files all over your filesystem. Keep everything organized in one centralized repository with descriptive filenames and timestamps.
+
+Complete Privacy
+All your drawings are stored in a private repository that only you can access. No one else can see your work unless you explicitly grant them access through GitHub.
+
+Lightning Fast
+Built with modern web technologies (React, Vite, TypeScript). Nimue is responsive and does not slow down your browser.
+
+
+PRIVACY AND SECURITY
+
+Your privacy matters. Here is what you should know.
+
+No Data Collection
+Nimue does not collect, store, or transmit your personal information or drawing data to the developer. Everything stays between you and GitHub.
+
+Your Token, Your Browser
+Your GitHub Personal Access Token is stored in Chrome's local storage on your device. It is only used to authenticate with GitHub's official API.
+
+Open Source
+The full source code is available on GitHub. You can inspect exactly what the extension does and verify there are no hidden behaviors.
+
+Minimal Permissions
+storage, tabs, and scripting for local settings and the toolbar popup. Host access is limited to excalidraw.com (in-page panel and canvas data) and api.github.com (sync your private repository only).
+
+Private GitHub Repository
+Drawings are stored in a private GitHub repository named nimue-excalidraw-storage using GitHub's secure API. Only you have access, and you can delete or manage files at any time through GitHub.
+
+
+GETTING STARTED
+
+1. Install Nimue from the Chrome Web Store (click Add to Chrome).
+
+2. Pin the extension to your toolbar for quick access:
+   Click the puzzle icon in your Chrome toolbar, find Nimue, click the pin icon.
+
+3. Create a GitHub Personal Access Token:
+   Go to https://github.com/settings/tokens
+   Click Generate new token (classic)
+   Give it a name like Nimue Extension
+   Check the repo scope checkbox (needed for private repository access)
+   Click Generate token and copy it
+
+4. Connect Nimue:
+   Navigate to https://excalidraw.com
+   Click the Nimue button below the top-right toolbar (under Excalidraw+, Share, and Library)
+   In the panel, connect and paste your GitHub token
+
+5. Start using it:
+   Create a new drawing or modify an existing one in Excalidraw
+   Open the Nimue panel to see your gallery
+   Use New to create a named drawing
+   Use Save to back up your current work
+   Click any drawing in the list to load it instantly
+   Autosave can push changes to GitHub while you draw
+
+
+FAQs
+
+Does this extension store my drawings?
+
+No. All drawings are stored directly in your GitHub account in a private repository. Nimue provides an interface to manage them. Your data lives on GitHub's servers, not the extension developer's.
+
+Which websites does it work on?
+
+Nimue works exclusively on https://excalidraw.com. It does not work on self-hosted Excalidraw instances or other drawing tools.
+
+Is it free?
+
+Yes. Nimue is free to use. GitHub private repositories are also free for personal use under GitHub's current plans.
+
+Will it slow down my browser?
+
+No. Nimue is optimized and only runs on excalidraw.com when you use the panel, plus a small toolbar popup. It has minimal impact on browser performance.
+
+Can I use it on other browsers?
+
+Currently, Nimue is built for Chrome and Chromium-based browsers (Edge, Brave, Vivaldi, etc.). Firefox support may come in the future.
+
+What happens if I delete a drawing file on GitHub?
+
+If you delete a .excalidraw file directly from your repository on GitHub, it will no longer appear in Nimue's gallery. The extension only shows files that currently exist in your nimue-excalidraw-storage repository.
+
+Can other people see my drawings?
+
+No. Your drawings are in a private repository that only you can access unless you explicitly invite collaborators through GitHub.
+
+Do I need to be connected to the internet?
+
+Yes. Nimue syncs with GitHub, so you need an internet connection to save and load drawings. Excalidraw itself can still be used offline for local editing.
+
+
+SUPPORT AND FEEDBACK
+
+Found a bug or have a feature request? Visit the GitHub repository or leave a review on the Chrome Web Store.
+
+Not affiliated with Excalidraw. Nimue is an independent extension created by developers who love Excalidraw.

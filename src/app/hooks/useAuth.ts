@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { QUERY } from '@/lib/constants';
 import { validateToken } from '@/lib/github';
-import { clearToken, getToken, setToken } from '@/lib/storage';
+import { clearActiveDrawing, clearToken, getToken, setToken } from '@/lib/storage';
 import type { GitHubUser } from '@/types';
 
 export function useAuth() {
@@ -37,11 +37,15 @@ export function useAuth() {
   });
 
   const disconnect = useMutation({
-    mutationFn: clearToken,
+    mutationFn: async () => {
+      await clearToken();
+      await clearActiveDrawing();
+    },
     onSuccess: () => {
       qc.setQueryData(QUERY.token, null);
       qc.setQueryData(QUERY.user, null);
       qc.setQueryData(QUERY.drawings, []);
+      qc.setQueryData(QUERY.active, null);
     },
   });
 

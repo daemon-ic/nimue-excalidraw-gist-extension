@@ -7,18 +7,11 @@ import {
   renameDrawing,
   updateDrawing,
 } from '@/lib/github';
-import {
-  applyScene,
-  applySceneHere,
-  captureScene,
-  captureSceneHere,
-  emptyScene,
-  getExcalidrawTabId,
-} from '@/lib/excalidraw';
+import { applySceneHere, captureSceneHere, emptyScene } from '@/lib/excalidraw';
 import { getActiveDrawing, setActiveDrawing } from '@/lib/storage';
 import type { DrawingMeta } from '@/types';
 
-export function useDrawings(owner: string | undefined, inPage: boolean) {
+export function useDrawings(owner: string | undefined) {
   const qc = useQueryClient();
 
   const list = useQuery({
@@ -32,7 +25,7 @@ export function useDrawings(owner: string | undefined, inPage: boolean) {
     queryFn: getActiveDrawing,
   });
 
-  const capture = () => (inPage ? captureSceneHere() : getExcalidrawTabId().then(captureScene));
+  const capture = () => captureSceneHere();
 
   /** Save current canvas to GitHub before switching drawings */
   async function saveCurrentIfNeeded(): Promise<void> {
@@ -55,11 +48,7 @@ export function useDrawings(owner: string | undefined, inPage: boolean) {
       const scene = await readDrawing(owner!, drawing.filename);
       const meta = { ...drawing };
       await setActiveDrawing(meta);
-      if (inPage) {
-        await applySceneHere(scene, meta);
-      } else {
-        await applyScene(await getExcalidrawTabId(), scene, meta);
-      }
+      await applySceneHere(scene, meta);
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: QUERY.active });
@@ -86,11 +75,7 @@ export function useDrawings(owner: string | undefined, inPage: boolean) {
       const scene = emptyScene();
       const meta = await createDrawing(owner!, name, scene);
       await setActiveDrawing(meta);
-      if (inPage) {
-        await applySceneHere(scene, meta);
-      } else {
-        await applyScene(await getExcalidrawTabId(), scene, meta);
-      }
+      await applySceneHere(scene, meta);
       return meta;
     },
     onSuccess: (meta) => {

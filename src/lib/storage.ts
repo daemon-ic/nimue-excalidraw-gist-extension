@@ -15,6 +15,10 @@ export async function clearToken(): Promise<void> {
   await browser.storage.local.remove(STORAGE.token);
 }
 
+export async function clearActiveDrawing(): Promise<void> {
+  await browser.storage.local.remove(STORAGE.activeDrawing);
+}
+
 export async function getActiveDrawing(): Promise<DrawingMeta | null> {
   const data = await browser.storage.local.get(STORAGE.activeDrawing);
   return (data[STORAGE.activeDrawing] as DrawingMeta) || null;

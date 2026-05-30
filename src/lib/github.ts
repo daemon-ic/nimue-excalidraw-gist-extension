@@ -94,7 +94,7 @@ export async function validateToken(token: string): Promise<GitHubUser | null> {
   });
   if (!res.ok) return null;
   const user = await res.json();
-  return { login: user.login, name: user.name, email: user.email };
+  return { login: user.login, name: user.name };
 }
 
 export async function getAuthLogin(): Promise<string> {
@@ -114,7 +114,6 @@ async function createRepoViaApi(): Promise<void> {
   const payloads = [
     { name: REPO_NAME, private: true, auto_init: true },
     { name: REPO_NAME, private: true, auto_init: false },
-    { name: REPO_NAME, private: false, auto_init: true },
   ];
 
   let lastError: GithubApiError | null = null;
@@ -284,25 +283,49 @@ export async function createDrawing(
   return toMeta(result.content);
 }
 
+async function fileSha(owner: string, filename: string): Promise<string> {
+  const login = await getAuthLogin();
+  const file = await gh<GhContent>(`/repos/${login}/${REPO_NAME}/contents/${filename}`);
+  return file.sha;
+}
+
+async function putDrawing(
+  owner: string,
+  filename: string,
+  scene: ExcalidrawScene,
+  sha: string
+): Promise<GhContent> {
+  const login = await getAuthLogin();
+  const content = JSON.stringify(scene, null, 2);
+  const result = await gh<{ content: GhContent }>(
+    `/repos/${login}/${REPO_NAME}/contents/${filename}`,
+    {
+      method: 'PUT',
+      body: JSON.stringify({
+        message: `Update ${filename}`,
+        content: toBase64(content),
+        sha,
+      }),
+    }
+  );
+  return result.content;
+}
+
 export async function updateDrawing(
   owner: string,
   drawing: DrawingMeta,
   scene: ExcalidrawScene
 ): Promise<DrawingMeta> {
-  const login = await getAuthLogin();
-  const content = JSON.stringify(scene, null, 2);
-  const result = await gh<{ content: GhContent }>(
-    `/repos/${login}/${REPO_NAME}/contents/${drawing.filename}`,
-    {
-      method: 'PUT',
-      body: JSON.stringify({
-        message: `Update ${drawing.filename}`,
-        content: toBase64(content),
-        sha: drawing.sha,
-      }),
-    }
-  );
-  return toMeta(result.content, drawing.lastUpdated);
+  try {
+    const content = await putDrawing(owner, drawing.filename, scene, drawing.sha);
+    return toMeta(content, drawing.lastUpdated);
+  } catch (e) {
+    if (!(e instanceof GithubApiError && e.status === 409)) throw e;
+
+    const freshSha = await fileSha(owner, drawing.filename);
+    const content = await putDrawing(owner, drawing.filename, scene, freshSha);
+    return toMeta(content, drawing.lastUpdated);
+  }
 }
 
 export async function renameDrawing(
